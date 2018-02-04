@@ -410,7 +410,7 @@ MariaDB [ControleDeGastos]> SELECT * FROM compras WHERE observacoes LIKE '%de%';
 
 ### 2.14 EXERCÍCIOS
 
-
+https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/2-ListaExercicios
 
 
 
@@ -419,7 +419,160 @@ MariaDB [ControleDeGastos]> SELECT * FROM compras WHERE observacoes LIKE '%de%';
 
 ---
 
-## <a name="parte3"></a>
+## <a name="parte3">ATUALIZANDO E EXCLUINDO DADOS</a>
+
+#### SQL, quando queremos filtrar um intervalo, podemos utilizar o operador BETWEEN:
+
+```sql
+SELECT valor,observacoes 
+FROM compras 
+WHERE valor >= 1000 AND valor <= 2000;
++---------+------------------------+
+| valor   | observacoes            |
++---------+------------------------+
+| 1576.40 | Material de construcao |
+| 1203.00 | Quartos                |
+| 1501.00 | Presente da sogra      |
+| 1709.00 | Parcela da casa        |
+| 1245.20 | Roupas                 |
++---------+------------------------+
+5 rows in set (0.05 sec)
+
+-- USANDO BETWEEN
+
+SELECT valor, observacoes 
+FROM compras 
+WHERE valor BETWEEN 1000 AND 2000;
++---------+------------------------+
+| valor   | observacoes            |
++---------+------------------------+
+| 1576.40 | Material de construcao |
+| 1203.00 | Quartos                |
+| 1501.00 | Presente da sogra      |
+| 1709.00 | Parcela da casa        |
+| 1245.20 | Roupas                 |
++---------+------------------------+
+5 rows in set (0.00 sec)
+
+-- mais um filtro pegando o intervalo de 01/01/2013 e 31/12/2013
+
+SELECT valor, observacoes 
+FROM compras 
+WHERE valor BETWEEN 1000 AND 2000 
+AND data BETWEEN '2013-01-01' AND '2013-12-01';
++---------+-------------+
+| valor   | observacoes |
++---------+-------------+
+| 1203.00 | Quartos     |
++---------+-------------+
+1 row in set (0.00 sec)
+
+```
+
+### 3.1 UTILIZANDO O UPDATE
+
+```sql
+ SELECT id,valor, observacoes FROM compras WHERE valor BETWEEN 1000 AND 2000 AND data BETWEEN '2013-01-01' AND '2013-12-01';
++----+---------+-------------+
+| id | valor   | observacoes |
++----+---------+-------------+
+|  7 | 1203.00 | Quartos     |
++----+---------+-------------+
+
+UPDATE compras 
+SET valor = 1500 
+WHERE id = 7;
+
+
+SELECT id,valor, observacoes FROM compras WHERE valor BETWEEN 1000 AND 2000 AND data BETWEEN '2013-01-01' AND '2013-12-01';
++----+---------+-------------+
+| id | valor   | observacoes |
++----+---------+-------------+
+|  7 | 1500.00 | Quartos     |
++----+---------+-------------+
+
+UPDATE compras 
+SET observacoes = 'Reforma de Quartos' 
+WHERE id = 7;
+
+
+SELECT id,valor, observacoes FROM compras WHERE valor BETWEEN 1000 AND 2000 AND data BETWEEN '2013-01-01' AND '2013-12-01';
++----+---------+--------------------+
+| id | valor   | observacoes        |
++----+---------+--------------------+
+|  7 | 1500.00 | Reforma de Quartos |
++----+---------+--------------------+
+
+```
+
+### 3.2 ATUALIZANDO VÁRIAS COLUNAS AO MESMO TEMPO
+
+```sql
+ UPDATE compras 
+ SET valor = 1555 , observacoes = 'Reforma dos quartos CARA' 
+ WHERE id = 7; 
+
+
+MariaDB [ControleDeGastos]> SELECT id,valor, observacoes FROM compras WHERE valor BETWEEN 1000 AND 2000 AND data BETWEEN '2013-01-01' AND '2013-12-01';
++----+---------+--------------------------+
+| id | valor   | observacoes              |
++----+---------+--------------------------+
+|  7 | 1555.00 | Reforma dos quartos CARA |
++----+---------+--------------------------+
+```
+
+### 3.3 UTILIZANDO UMA COLUNA COMO REFERÊNCIA PARA OUTRA COLUNA
+
+```sql
+ SELECT id, valor FROM compras WHERE id > 7 AND id <= 10;
++----+--------+
+| id | valor  |
++----+--------+
+|  8 | 402.90 |
+|  9 |  54.98 |
+| 10 |  12.34 |
++----+--------+
+
+UPDATE compras 
+SET valor = valor * 1.1 
+WHERE id >= 7 AND id <= 10;
+Query OK, 4 rows affected, 2 warnings (0.14 sec)
+Rows matched: 4  Changed: 4  Warnings: 2
+
+MariaDB [ControleDeGastos]> SELECT id, valor FROM compras WHERE id > 7 AND id <= 10;
++----+--------+
+| id | valor  |
++----+--------+
+|  8 | 443.19 |
+|  9 |  60.48 |
+| 10 |  13.57 |
++----+--------+
+
+```
+Se eu tenho uma tabela de produtos com os campos precoLiquido eu posso atualizar o precoBruto quando o imposto mudar para 15%:
+```sql
+    UPDATE produtos SET precoBruto = precoLiquido * 1.15;
+```
+
+### 3.4 UTILIZANDO O DELETE
+```sql
+DELETE FROM compras WHERE id = 7;
+
+SELECT id, valor FROM compras WHERE id = 7;
+Empty set (0.00 sec)
+```
+
+### 3.5 CUIDADOS COM O DELETE E UPDATE
+A boa prática para executar essas instruções é sempre escrever a instrução WHERE antes, ou seja, definir primeiro qual será a condição para executar essas instruções:
+
+```sql
+-- Então adicionamos o DELETE / UPDATE :
+DELETE FROM compras WHERE id = 11;
+UPDATE compras SET valor = 1500 WHERE id = 11;
+```
+
+### Lista 3 Exercício
+
 
 
 [Voltar ao Índice](#indice)
