@@ -573,13 +573,14 @@ UPDATE compras SET valor = 1500 WHERE id = 11;
 
 ### Lista 3 Exercício
 
+https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/3-ListaExercicios
 
 
 [Voltar ao Índice](#indice)
 
 ---
 
-## <a name="parte4"></a>
+## <a name="parte4">ALTERANDO E RESTRINGINDO O FORMATO DE NOSSAS TABELAS</a>
 
 
 [Voltar ao Índice](#indice)
