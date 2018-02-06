@@ -582,12 +582,145 @@ https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tr
 
 ## <a name="parte4">ALTERANDO E RESTRINGINDO O FORMATO DE NOSSAS TABELAS</a>
 
+```sql
+DESC compras;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| id          | int(11)       | NO   | PRI | NULL    | auto_increment |
+| valor       | decimal(18,2) | YES  |     | NULL    |                |
+| data        | date          | YES  |     | NULL    |                |
+| observacoes | varchar(255)  | YES  |     | NULL    |                |
+| recebida    | tinyint(4)    | YES  |     | NULL    |                |
++-------------+---------------+------+-----+---------+----------------+
+5 rows in set (0.03 sec)
+
+ INSERT INTO compras (valor,data,recebdica,observacoes) 
+ VALUES(120,'2016-01-01', 1, NULL);
+
+SELECT * FROM compras WHERE data = '2016-01-01';
++----+--------+------------+-------------+----------+
+| id | valor  | data       | observacoes | recebida |
++----+--------+------------+-------------+----------+
+| 45 | 120.00 | 2016-01-01 | NULL        |        1 |
++----+--------+------------+-------------+----------+
+
+```
+### 4.1 RESTRINGINDO OS NULOS
+
+Podemos criar restrições, Constraints, que tem a capacidade de determinar as regras que as colunas de nossas tabelas terão.
+
+```sql
+ SELECT * FROM compras WHERE observacoes IS NULL;
++----+--------+------------+-------------+----------+
+| id | valor  | data       | observacoes | recebida |
++----+--------+------------+-------------+----------+
+| 45 | 120.00 | 2016-01-01 | NULL        |        1 |
++----+--------+------------+-------------+----------+
+1 row in set (0.00 sec)
+
+-- excluir todas as compras que tenham as observações nulas
+
+DELETE FROM compras WHERE observacoes IS NULL;
+Query OK, 1 row affected (0.05 sec)
+
+SELECT * FROM compras WHERE observacoes IS NULL;
+Empty set (0.00 sec)
+```
+
+### 4.2 ADICIONANDO CONSTRAINTS
+
+Definir Constraints no momento da criação da tabela:
+```sql
+CREATE TABLE compras(
+    -> id INT AUTO_INCREMENT PRIMARY KEY,
+    -> valor DECIMAL(18,2) NOT NULL,
+    -> data DATE NOT NULL,
+    -> observacoes VARCHAR(255) NOT NULL,
+    -> recebida TINYINT) NOT NULL;
+```
+
+### Ajustando a tabela
+```sql
+
+MariaDB [controledegastos]> DESC compras;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| id          | int(11)       | NO   | PRI | NULL    | auto_increment |
+| valor       | decimal(18,2) | YES  |     | NULL    |                |
+| data        | date          | YES  |     | NULL    |                |
+| observacoes | varchar(255)  | YES  |     | NULL    |                |
+| recebida    | tinyint(4)    | YES  |     | NULL    |                |
++-------------+---------------+------+-----+---------+----------------+
+5 rows in set (0.02 sec)
+
+MariaDB [controledegastos]> ALTER TABLE compras MODIFY COLUMN observacoes VARCHAR(255) NOT NULL;
+Query OK, 42 rows affected (0.16 sec)
+Records: 42  Duplicates: 0  Warnings: 0
+
+MariaDB [controledegastos]> DESC compras;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| id          | int(11)       | NO   | PRI | NULL    | auto_increment |
+| valor       | decimal(18,2) | YES  |     | NULL    |                |
+| data        | date          | YES  |     | NULL    |                |
+| observacoes | varchar(255)  | NO   |     | NULL    |                |
+| recebida    | tinyint(4)    | YES  |     | NULL    |                |
++-------------+---------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+
+INSERT INTO compras (valor,data,recebida,observacoes) VALUES(120,'2016-01-01', 1, NULL);
+ERROR 1048 (23000): Column 'observacoes' cannot be null
+
+```
+
+### 4.3 VALORES DEFAULT
+
+Adicionar valores padrões, no inglês Default, em uma coluna utilizando a instrução DEFAULT:
+```sql
+ ALTER TABLE compras MODIFY COLUMN recebida tinyint(1) DEFAULT 0;
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+MariaDB [controledegastos]> DESC compras;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| id          | int(11)       | NO   | PRI | NULL    | auto_increment |
+| valor       | decimal(18,2) | YES  |     | NULL    |                |
+| data        | date          | YES  |     | NULL    |                |
+| observacoes | varchar(255)  | NO   |     | NULL    |                |
+| recebida    | tinyint(1)    | YES  |     | 0       |                |
++-------------+---------------+------+-----+---------+----------------+
+
+ INSERT INTO compras(valor, data, observacoes) 
+ VALUES(150,'2018-02-06','compras de teste');
+Query OK, 1 row affected (0.38 sec)
+
+MariaDB [controledegastos]> SELECT * FROM compras WHERE id > 40;
++----+--------+------------+------------------------+----------+
+| id | valor  | data       | observacoes            | recebida |
++----+--------+------------+------------------------+----------+
+| 41 |  87.43 | 2015-05-10 | Gravata                |        0 |
+| 42 | 887.66 | 2015-02-02 | Presente para o filhao |        1 |
+| 43 | 100.00 | 2015-09-02 | COMIDA                 |        1 |
+| 46 | 150.00 | 2018-02-06 | compras de teste       |        0 |
++----+--------+------------+------------------------+----------+
+4 rows in set (0.00 sec)
+
+```
+
+### Lista 4 Exercícios
+
+https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/4-ListaExercicios
 
 [Voltar ao Índice](#indice)
 
 ---
 
-## <a name="parte5"></a>
+## <a name="parte5">AGRUPANDO DADOS E FAZENDO CONSULTAS MAIS INTELIGENTES</a>
 
 
 [Voltar ao Índice](#indice)
