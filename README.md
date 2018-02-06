@@ -722,6 +722,79 @@ https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tr
 
 ## <a name="parte5">AGRUPANDO DADOS E FAZENDO CONSULTAS MAIS INTELIGENTES</a>
 
+```sql
+SELECT SUM(valor) FROM compras;
++------------+
+| SUM(valor) |
++------------+
+|   42094.44 |
++------------+
+1 row in set (0.00 sec)
+```
+
+Total de todas as compras recebidas:
+```sql
+ SELECT SUM(valor) FROM compras WHERE recebida = TRUE;
++------------+
+| SUM(valor) |
++------------+
+|   33841.59 |
++------------+
+1 row in set (0.00 sec)
+
+ SELECT SUM(valor) FROM compras WHERE recebida = FALSE;
++------------+
+| SUM(valor) |
++------------+
+|    8252.85 |
++------------+
+1 row in set (0.00 sec)
+
+ SELECT COUNT(*) FROM compras WHERE recebida = TRUE;
++----------+
+| COUNT(*) |
++----------+
+|       29 |
++----------+
+1 row in set (0.00 sec)
+
+SELECT recebida, SUM(valor) FROM compras GROUP BY recebida;
++----------+------------+
+| recebida | SUM(valor) |
++----------+------------+
+|        0 |    8252.85 |
+|        1 |   33841.59 |
++----------+------------+
+2 rows in set (0.00 sec)
+
+SELECT recebida, SUM(valor) AS 'soma' FROM compras GROUP by recebida;
++----------+----------+
+| recebida | soma     |
++----------+----------+
+|        0 |  8252.85 |
+|        1 | 33841.59 |
++----------+----------+
+2 rows in set (0.00 sec)
+
+-- aplicar filtros em queries que utilizam funções de agregação
+
+ SELECT recebida, SUM(valor) AS soma 
+ FROM compras 
+ WHERE valor < 1000 
+ GROUP by recebida;
++----------+---------+
+| recebida | soma    |
++----------+---------+
+|        0 | 1808.65 |
+|        1 | 9366.67 |
++----------+---------+
+2 rows in set (0.00 sec)
+
+```
+
+Suponhamos uma query mais robusta, onde podemos verificar em qual mês e ano a compra foi entregue ou não e o valor da soma. Podemos retornar a informação de ano utilizando a função YEAR() e a informação de mês utilizando a função MONTH() :
+
+
 
 [Voltar ao Índice](#indice)
 
