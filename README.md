@@ -792,7 +792,178 @@ SELECT recebida, SUM(valor) AS 'soma' FROM compras GROUP by recebida;
 
 ```
 
-Suponhamos uma query mais robusta, onde podemos verificar em qual mês e ano a compra foi entregue ou não e o valor da soma. Podemos retornar a informação de ano utilizando a função YEAR() e a informação de mês utilizando a função MONTH() :
+Suponhamos uma query mais robusta, onde podemos verificar em qual mês e ano a compra foi entregue ou não e o valor da soma. Podemos retornar a informação de ano utilizando a função YEAR() e a informação de mês utilizando a função MONTH():
+
+```sql
+ SELECT MONTH(data) AS mes, YEAR(data) AS ano, recebida, SUM(valor) AS soma 
+ FROM compras 
+ GROUP BY recebida, mes, ano;
++------+------+----------+----------+
+| mes  | ano  | recebida | soma     |
++------+------+----------+----------+
+|    1 | 2013 |        0 |     2.39 |
+|    2 | 2018 |        0 |   150.00 |
+|    4 | 2013 |        0 |    50.48 |
+|    5 | 2012 |        0 |  3490.00 |
+|    5 | 2013 |        0 |     3.57 |
+|    5 | 2015 |        0 |    87.43 |
+|    7 | 2015 |        0 |    12.34 |
+|    8 | 2014 |        0 |  1709.00 |
+|    9 | 2014 |        0 |   567.09 |
+|    9 | 2015 |        0 |   213.50 |
+|   10 | 2014 |        0 |    98.00 |
+|   10 | 2015 |        0 |  1245.20 |
+|   12 | 2014 |        0 |   623.85 |
+|    1 | 2013 |        1 |  8016.90 |
+|    1 | 2014 |        1 |   827.50 |
+|    2 | 2012 |        1 |   190.00 |
+|    2 | 2014 |        1 |   921.11 |
+|    2 | 2015 |        1 |   986.36 |
+|    3 | 2013 |        1 |   815.34 |
+|    4 | 2012 |        1 |  1566.40 |
+|    4 | 2014 |        1 | 12139.30 |
+|    5 | 2014 |        1 |   678.43 |
+|    6 | 2014 |        1 |  1616.90 |
+|    7 | 2013 |        1 |    98.12 |
+|    7 | 2015 |        1 |    32.09 |
+|    9 | 2015 |        1 |   676.12 |
+|   10 | 2014 |        1 |   631.53 |
+|   11 | 2013 |        1 |  3212.40 |
+|   11 | 2015 |        1 |   954.12 |
+|   12 | 2012 |        1 |   153.45 |
+|   12 | 2013 |        1 |   301.74 |
+|   12 | 2015 |        1 |    23.78 |
++------+------+----------+----------+
+32 rows in set (0.00 sec)
+```
+
+### 5.1 ORDENANDO OS RESULTADOS
+
+```sql
+ SELECT MONTH(data) AS mes, YEAR(data) AS ano, recebida, SUM(valor) AS soma FROM compras GROUP BY recebida, mes, ano ORDER BY mes;
++------+------+----------+----------+
+| mes  | ano  | recebida | soma     |
++------+------+----------+----------+
+|    1 | 2013 |        0 |     2.39 |
+|    1 | 2013 |        1 |  8016.90 |
+|    1 | 2014 |        1 |   827.50 |
+|    2 | 2018 |        0 |   150.00 |
+|    2 | 2012 |        1 |   190.00 |
+|    2 | 2015 |        1 |   986.36 |
+|    2 | 2014 |        1 |   921.11 |
+|    3 | 2013 |        1 |   815.34 |
+|    4 | 2013 |        0 |    50.48 |
+|    4 | 2014 |        1 | 12139.30 |
+|    4 | 2012 |        1 |  1566.40 |
+|    5 | 2014 |        1 |   678.43 |
+|    5 | 2015 |        0 |    87.43 |
+|    5 | 2013 |        0 |     3.57 |
+|    5 | 2012 |        0 |  3490.00 |
+|    6 | 2014 |        1 |  1616.90 |
+|    7 | 2015 |        1 |    32.09 |
+|    7 | 2013 |        1 |    98.12 |
+|    7 | 2015 |        0 |    12.34 |
+|    8 | 2014 |        0 |  1709.00 |
+|    9 | 2015 |        0 |   213.50 |
+|    9 | 2014 |        0 |   567.09 |
+|    9 | 2015 |        1 |   676.12 |
+|   10 | 2015 |        0 |  1245.20 |
+|   10 | 2014 |        1 |   631.53 |
+|   10 | 2014 |        0 |    98.00 |
+|   11 | 2015 |        1 |   954.12 |
+|   11 | 2013 |        1 |  3212.40 |
+|   12 | 2013 |        1 |   301.74 |
+|   12 | 2012 |        1 |   153.45 |
+|   12 | 2015 |        1 |    23.78 |
+|   12 | 2014 |        0 |   623.85 |
++------+------+----------+----------+
+32 rows in set (0.00 sec)
+
+ SELECT MONTH(data) AS mes, YEAR(data) AS ano, recebida, SUM(valor) AS soma FROM compras GROUP BY recebida, mes, ano ORDER BY ano, mes;
++------+------+----------+----------+
+| mes  | ano  | recebida | soma     |
++------+------+----------+----------+
+|    2 | 2012 |        1 |   190.00 |
+|    4 | 2012 |        1 |  1566.40 |
+|    5 | 2012 |        0 |  3490.00 |
+|   12 | 2012 |        1 |   153.45 |
+|    1 | 2013 |        0 |     2.39 |
+|    1 | 2013 |        1 |  8016.90 |
+|    3 | 2013 |        1 |   815.34 |
+|    4 | 2013 |        0 |    50.48 |
+|    5 | 2013 |        0 |     3.57 |
+|    7 | 2013 |        1 |    98.12 |
+|   11 | 2013 |        1 |  3212.40 |
+|   12 | 2013 |        1 |   301.74 |
+|    1 | 2014 |        1 |   827.50 |
+|    2 | 2014 |        1 |   921.11 |
+|    4 | 2014 |        1 | 12139.30 |
+|    5 | 2014 |        1 |   678.43 |
+|    6 | 2014 |        1 |  1616.90 |
+|    8 | 2014 |        0 |  1709.00 |
+|    9 | 2014 |        0 |   567.09 |
+|   10 | 2014 |        1 |   631.53 |
+|   10 | 2014 |        0 |    98.00 |
+|   12 | 2014 |        0 |   623.85 |
+|    2 | 2015 |        1 |   986.36 |
+|    5 | 2015 |        0 |    87.43 |
+|    7 | 2015 |        1 |    32.09 |
+|    7 | 2015 |        0 |    12.34 |
+|    9 | 2015 |        0 |   213.50 |
+|    9 | 2015 |        1 |   676.12 |
+|   10 | 2015 |        0 |  1245.20 |
+|   11 | 2015 |        1 |   954.12 |
+|   12 | 2015 |        1 |    23.78 |
+|    2 | 2018 |        0 |   150.00 |
++------+------+----------+----------+
+32 rows in set (0.00 sec)
+
+-- AVG() que retorna a média de uma coluna:
+
+ SELECT MONTH(data) AS mes, YEAR(data) AS ano, recebida, AVG(valor) AS soma FROM compras GROUP BY recebida, mes, ano ORDER BY mes, ano;
++------+------+----------+-------------+
+| mes  | ano  | recebida | soma        |
++------+------+----------+-------------+
+|    1 | 2013 |        1 | 2672.300000 |
+|    1 | 2013 |        0 |    2.390000 |
+|    1 | 2014 |        1 |  827.500000 |
+|    2 | 2012 |        1 |  190.000000 |
+|    2 | 2014 |        1 |  460.555000 |
+|    2 | 2015 |        1 |  493.180000 |
+|    2 | 2018 |        0 |  150.000000 |
+|    3 | 2013 |        1 |  407.670000 |
+|    4 | 2012 |        1 | 1566.400000 |
+|    4 | 2013 |        0 |   50.480000 |
+|    4 | 2014 |        1 | 4046.433333 |
+|    5 | 2012 |        0 | 3490.000000 |
+|    5 | 2013 |        0 |    3.570000 |
+|    5 | 2014 |        1 |  678.430000 |
+|    5 | 2015 |        0 |   87.430000 |
+|    6 | 2014 |        1 |  808.450000 |
+|    7 | 2013 |        1 |   98.120000 |
+|    7 | 2015 |        1 |   32.090000 |
+|    7 | 2015 |        0 |   12.340000 |
+|    8 | 2014 |        0 | 1709.000000 |
+|    9 | 2014 |        0 |  567.090000 |
+|    9 | 2015 |        1 |  338.060000 |
+|    9 | 2015 |        0 |  213.500000 |
+|   10 | 2014 |        1 |  631.530000 |
+|   10 | 2014 |        0 |   98.000000 |
+|   10 | 2015 |        0 | 1245.200000 |
+|   11 | 2013 |        1 | 3212.400000 |
+|   11 | 2015 |        1 |  954.120000 |
+|   12 | 2012 |        1 |  153.450000 |
+|   12 | 2013 |        1 |  150.870000 |
+|   12 | 2014 |        0 |  311.925000 |
+|   12 | 2015 |        1 |   23.780000 |
++------+------+----------+-------------+
+32 rows in set (0.00 sec)
+
+``` 
+
+### Lista 5 Exercícios
+
+https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/5-ListaExercicios
 
 
 
@@ -800,14 +971,407 @@ Suponhamos uma query mais robusta, onde podemos verificar em qual mês e ano a c
 
 ---
 
-## <a name="parte6"></a>
+## <a name="parte6">JUNTANDO DADOS DE VÁRIAS TABELAS</a>
+
+```sql
+-- Adicionando uma coluna comprador
+ALTER TABLE compras ADD COLUMN comprador VARCHAR(255);
+Query OK, 0 rows affected (0.34 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+DESC compras;
++-------------+--------------+------+-----+---------+----------------+
+| Field       | Type         | Null | Key | Default | Extra          |
++-------------+--------------+------+-----+---------+----------------+
+| id          | int(11)      | NO   | PRI | NULL    | auto_increment |
+| valor       | varchar(255) | NO   |     | NULL    |                |
+| data        | date         | YES  |     | NULL    |                |
+| observacoes | varchar(255) | NO   |     | NULL    |                |
+| recebida    | tinyint(1)   | YES  |     | 0       |                |
+| comprador   | varchar(255) | YES  |     | NULL    |                |
++-------------+--------------+------+-----+---------+----------------+
+6 rows in set (0.01 sec)
+```
+
+Adicionando compradores
+```sql
+UPDATE compras SET comprador = 'Jose Malcher Jr' WHERE id = 1;
+Query OK, 1 row affected (0.11 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+MariaDB [controledegastos]> UPDATE compras SET comprador = 'Luiza Helena' WHERE id = 2;
+Query OK, 1 row affected (0.07 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+MariaDB [controledegastos]> UPDATE compras SET comprador = 'Cintia Helena' WHERE id = 3;
+Query OK, 1 row affected (0.02 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+--etc...
+ SELECT * FROM compras LIMIT 13;
++----+---------+------------+------------------------+----------+-----------------+
+| id | valor   | data       | observacoes            | recebida | comprador       |
++----+---------+------------+------------------------+----------+-----------------+
+|  1 | 190.00  | 2012-02-19 | Material escolar       |        1 | Jose Malcher Jr |
+|  2 | 3490.00 | 2012-05-21 | Televisao              |        0 | Luiza Helena    |
+|  3 | 1566.40 | 2012-04-30 | Material de construcao |        1 | Cintia Helena   |
+|  4 | 153.45  | 2012-12-15 | Pizza pra familia      |        1 | Ana Carolina    |
+|  5 | 4770.00 | 2013-01-23 | Sala de estar          |        1 | Jose Malcher Jr |
+|  6 | 382.15  | 2013-03-03 | Quartos                |        1 | NULL            |
+|  8 | 433.19  | 2013-03-21 | Copa                   |        1 | NULL            |
+|  9 | 50.48   | 2013-04-12 | Lanchonete             |        0 | NULL            |
+| 10 | 3.57    | 2013-05-23 | Lanchonete             |        0 | Jose Malcher Jr |
+| 11 | 78.65   | 2013-12-04 | entregue antes de 2014 |        1 | Jose Malcher Jr |
+| 12 | 2.39    | 2013-01-06 | Sorvete no parque      |        0 | Ana Carolina    |
+| 13 | 98.12   | 2013-07-09 | entregue antes de 2014 |        1 | Ana Carolina    |
+| 14 | 2488.00 | 2013-01-12 | Compras de janeiro     |        1 | Luiza Helena    |
++----+---------+------------+------------------------+----------+-----------------+
+13 rows in set (0.00 sec)
+
+--ajuste
+ UPDATE compras SET comprador = 'Ana Carolina' WHERE id = 14 AND comprador = 'Luiza Helena';
+Query OK, 1 row affected (0.04 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+MariaDB [controledegastos]> SELECT * FROM compras LIMIT 13;
++----+---------+------------+------------------------+----------+-----------------+
+| id | valor   | data       | observacoes            | recebida | comprador       |
++----+---------+------------+------------------------+----------+-----------------+
+|  1 | 190.00  | 2012-02-19 | Material escolar       |        1 | Jose Malcher Jr |
+|  2 | 3490.00 | 2012-05-21 | Televisao              |        0 | Luiza Helena    |
+|  3 | 1566.40 | 2012-04-30 | Material de construcao |        1 | Cintia Helena   |
+|  4 | 153.45  | 2012-12-15 | Pizza pra familia      |        1 | Ana Carolina    |
+|  5 | 4770.00 | 2013-01-23 | Sala de estar          |        1 | Jose Malcher Jr |
+|  6 | 382.15  | 2013-03-03 | Quartos                |        1 | NULL            |
+|  8 | 433.19  | 2013-03-21 | Copa                   |        1 | NULL            |
+|  9 | 50.48   | 2013-04-12 | Lanchonete             |        0 | NULL            |
+| 10 | 3.57    | 2013-05-23 | Lanchonete             |        0 | Jose Malcher Jr |
+| 11 | 78.65   | 2013-12-04 | entregue antes de 2014 |        1 | Jose Malcher Jr |
+| 12 | 2.39    | 2013-01-06 | Sorvete no parque      |        0 | Ana Carolina    |
+| 13 | 98.12   | 2013-07-09 | entregue antes de 2014 |        1 | Ana Carolina    |
+| 14 | 2488.00 | 2013-01-12 | Compras de janeiro     |        1 | Ana Carolina    |
++----+---------+------------+------------------------+----------+-----------------+
+13 rows in set (0.00 sec)
+
+```
+
+Adicionando coluna TELEFONE
+```sql
+ALTER TABLE compras ADD COLUMN telefone VARCHAR(30);
+Query OK, 0 rows affected (0.19 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+MariaDB [controledegastos]> DESC compras;
++-------------+--------------+------+-----+---------+----------------+
+| Field       | Type         | Null | Key | Default | Extra          |
++-------------+--------------+------+-----+---------+----------------+
+| id          | int(11)      | NO   | PRI | NULL    | auto_increment |
+| valor       | varchar(255) | NO   |     | NULL    |                |
+| data        | date         | YES  |     | NULL    |                |
+| observacoes | varchar(255) | NO   |     | NULL    |                |
+| recebida    | tinyint(1)   | YES  |     | 0       |                |
+| comprador   | varchar(255) | YES  |     | NULL    |                |
+| telefone    | varchar(30)  | YES  |     | NULL    |                |
++-------------+--------------+------+-----+---------+----------------+
+7 rows in set (0.03 sec)
+```
+
+Adicionando Telefones:
+```sql
+ UPDATE compras SET telefone = '43 94444-0000' WHERE comprador = 'Ana Carolina';
+Query OK, 4 rows affected (0.03 sec)
+Rows matched: 4  Changed: 4  Warnings: 0
+
+MariaDB [controledegastos]> SELECT * FROM compras LIMIT 13;
++----+---------+------------+------------------------+----------+-----------------+---------------+
+| id | valor   | data       | observacoes            | recebida | comprador       | telefone      |
++----+---------+------------+------------------------+----------+-----------------+---------------+
+|  1 | 190.00  | 2012-02-19 | Material escolar       |        1 | Jose Malcher Jr | 91 98080-0000 |
+|  2 | 3490.00 | 2012-05-21 | Televisao              |        0 | Luiza Helena    | NULL          |
+|  3 | 1566.40 | 2012-04-30 | Material de construcao |        1 | Cintia Helena   | NULL          |
+|  4 | 153.45  | 2012-12-15 | Pizza pra familia      |        1 | Ana Carolina    | 43 94444-0000 |
+|  5 | 4770.00 | 2013-01-23 | Sala de estar          |        1 | Jose Malcher Jr | 91 98080-0000 |
+|  6 | 382.15  | 2013-03-03 | Quartos                |        1 | NULL            | NULL          |
+|  8 | 433.19  | 2013-03-21 | Copa                   |        1 | NULL            | NULL          |
+|  9 | 50.48   | 2013-04-12 | Lanchonete             |        0 | NULL            | NULL          |
+| 10 | 3.57    | 2013-05-23 | Lanchonete             |        0 | Jose Malcher Jr | 91 98080-0000 |
+| 11 | 78.65   | 2013-12-04 | entregue antes de 2014 |        1 | Jose Malcher Jr | 91 98080-0000 |
+| 12 | 2.39    | 2013-01-06 | Sorvete no parque      |        0 | Ana Carolina    | 43 94444-0000 |
+| 13 | 98.12   | 2013-07-09 | entregue antes de 2014 |        1 | Ana Carolina    | 43 94444-0000 |
+| 14 | 2488.00 | 2013-01-12 | Compras de janeiro     |        1 | Ana Carolina    | 43 94444-0000 |
++----+---------+------------+------------------------+----------+-----------------+---------------+
+13 rows in set (0.00 sec)
+```
+
+### 6.1 NORMALIZANDO NOSSO MODELO
+
+Duas entidades, em uma unica tabela: a compra e o comprador. Quando nos deparamos com esses tipos de problemas criamos novas tabelas.
+
+```sql
+ CREATE TABLE compradores(id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, 
+                         nome VARCHAR(255), 
+                         endereco VARCHAR(255), 
+                         telefone VARCHAR(255));
+Query OK, 0 rows affected (0.04 sec)
+
+SHOW TABLES;
++----------------------------+
+| Tables_in_controledegastos |
++----------------------------+
+| compradores                |
+| compras                    |
++----------------------------+
+2 rows in set (0.00 sec)
+
+DESC compradores;
++----------+--------------+------+-----+---------+----------------+
+| Field    | Type         | Null | Key | Default | Extra          |
++----------+--------------+------+-----+---------+----------------+
+| id       | int(11)      | NO   | PRI | NULL    | auto_increment |
+| nome     | varchar(255) | YES  |     | NULL    |                |
+| endereco | varchar(255) | YES  |     | NULL    |                |
+| telefone | varchar(255) | YES  |     | NULL    |                |
++----------+--------------+------+-----+---------+----------------+
+4 rows in set (0.01 sec)
+
+```
+
+Inserindo compradores:
+```sql
+INSERT INTO compradores(nome, endereco, telefone) VALUES('Jose Malcher Jr', 'Rua tal tal tal', '91 98080-00000');
+Query OK, 1 row affected (0.02 sec)
+
+INSERT INTO compradores(nome, endereco, telefone) VALUES('Ana Carolina', 'Rua FLoripa', '43 333320-00000');
+Query OK, 1 row affected (0.02 sec)
+
+INSERT INTO compradores(nome, endereco, telefone) VALUES('Luiza Helena', 'Rua Belém', '91 919920-00000');
+Query OK, 1 row affected (0.02 sec)
+
+MariaDB [controledegastos]> SELECT * FROM compradores;
++----+-----------------+-----------------+-----------------+
+| id | nome            | endereco        | telefone        |
++----+-----------------+-----------------+-----------------+
+|  1 | Jose Malcher Jr | Rua tal tal tal | 91 98080-00000  |
+|  2 | Ana Carolina    | Rua FLoripa     | 43 333320-00000 |
+|  3 | Luiza Helena    | Rua Belém       | 91 919920-00000 |
++----+-----------------+-----------------+-----------------+
+3 rows in set (0.00 sec)
+```
+
+Alterando a tabela COMPRAS
+```sql
+DESC compras;
++-------------+--------------+------+-----+---------+----------------+
+| Field       | Type         | Null | Key | Default | Extra          |
++-------------+--------------+------+-----+---------+----------------+
+| id          | int(11)      | NO   | PRI | NULL    | auto_increment |
+| valor       | varchar(255) | NO   |     | NULL    |                |
+| data        | date         | YES  |     | NULL    |                |
+| observacoes | varchar(255) | NO   |     | NULL    |                |
+| recebida    | tinyint(1)   | YES  |     | 0       |                |
+| comprador   | varchar(255) | YES  |     | NULL    |                |
+| telefone    | varchar(30)  | YES  |     | NULL    |                |
++-------------+--------------+------+-----+---------+----------------+
+7 rows in set (0.01 sec)
+
+ALTER TABLE compras DROP COLUMN comprador;
+Query OK, 0 rows affected (0.16 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+ALTER TABLE compras DROP COLUMN telefone;
+Query OK, 0 rows affected (0.06 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+DESC compras;
++-------------+--------------+------+-----+---------+----------------+
+| Field       | Type         | Null | Key | Default | Extra          |
++-------------+--------------+------+-----+---------+----------------+
+| id          | int(11)      | NO   | PRI | NULL    | auto_increment |
+| valor       | varchar(255) | NO   |     | NULL    |                |
+| data        | date         | YES  |     | NULL    |                |
+| observacoes | varchar(255) | NO   |     | NULL    |                |
+| recebida    | tinyint(1)   | YES  |     | 0       |                |
++-------------+--------------+------+-----+---------+----------------+
+5 rows in set (0.02 sec)
+
+ALTER TABLE compras ADD COLUMN id_comprador int;
+Query OK, 0 rows affected (0.10 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+DESC compras;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| id           | int(11)      | NO   | PRI | NULL    | auto_increment |
+| valor        | varchar(255) | NO   |     | NULL    |                |
+| data         | date         | YES  |     | NULL    |                |
+| observacoes  | varchar(255) | NO   |     | NULL    |                |
+| recebida     | tinyint(1)   | YES  |     | 0       |                |
+| id_comprador | int(11)      | YES  |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+6 rows in set (0.01 sec)
+
+```
+
+Adicionando os id compradores em compras:
+```sql
+ SELECT count(*) as 'Total de compras' FROM compras;
++------------------+
+| Total de compras |
++------------------+
+|               43 |
++------------------+
+1 row in set (0.00 sec)
+
+-- ETC....
+UPDATE compras SET id_comprador = 3 WHERE valor >= 80.0 AND valor <= 120.0 ;
+
+
+```
+
+### 6.2 ONE TO MANY/MANY TO ONE
+O que fizemos foi deixar claro que um comprador pode ter muitas compras (um para muitos), ou ainda que muitas compras podem vir do mesmo comprador (many to one), só depende do ponto de vista. Chamamos então de uma relação One to Many (ou Many to One).
+
+
+### 6.3 FOREIGN KEY
+
+```sql
+ SELECT * FROM compras JOIN compradores ON compras.id_comprador = compradores.id;
+
+
+-- sem JOIN 
+ SELECT * FROM compras, compradores WHERE compras.id_comprador = compradores.id;
+
+
+ ```
+A instrução JOIN espera uma tabela que precisa ser juntada: FROM compras JOIN compradores. Nesse caso estamos juntando a tabela compras com a tabela compradores. Para passarmos o critério de junção, utilizamos a instrução ON : ON compras.id_compradores = compradores.id . Nesse momento estamos informando a FOREIGN KEY da tabela compras (compras.id_compradores) e qual é a chave (compradores.id) da tabela compradores que referencia essa FOREIGN KEY.
+
+#### Quando adicionamos uma FOREIGN KEY em uma tabela, estamos adicionando uma Constraints:
+```sql
+
+ALTER TABLE compras ADD CONSTRAINT fk_compradores 
+FOREIGN KEY (id_comprador) REFERENCES compradores(id);
+Query OK, 43 rows affected (0.15 sec)
+Records: 43  Duplicates: 0  Warnings: 0
+
+-- Agora ao tentar adicionar uma ID inexistente na outra tabela: ERRO
+
+INSERT INTO compras(valor,data,observacoes, id_comprador) VALUES (2000,'2018-02-02', 'Play 4', 100);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`controledegastos`.`compras`, CONSTRAINT `fk_compradores` FOREIGN KEY (`id_comprador`) REFERENCES `compradores` (`id`))
+MariaDB [controledegastos]>
+
+```
+
+### 6.4 DETERMINANDO VALORES FIXOS NA TABELA
+
+```sql
+ALTER TABLE compras ADD COLUMN forma_pagamento ENUM('BOLETO','CREDITO');
+Query OK, 0 rows affected (0.12 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+MariaDB [controledegastos]> DESC compras;
++-----------------+--------------------------+------+-----+---------+----------------+
+| Field           | Type                     | Null | Key | Default | Extra          |
++-----------------+--------------------------+------+-----+---------+----------------+
+| id              | int(11)                  | NO   | PRI | NULL    | auto_increment |
+| valor           | varchar(255)             | NO   |     | NULL    |                |
+| data            | date                     | YES  |     | NULL    |                |
+| observacoes     | varchar(255)             | NO   |     | NULL    |                |
+| recebida        | tinyint(1)               | YES  |     | 0       |                |
+| id_comprador    | int(11)                  | YES  | MUL | NULL    |                |
+| forma_pagamento | enum('BOLETO','CREDITO') | YES  |     | NULL    |                |
++-----------------+--------------------------+------+-----+---------+----------------+
+7 rows in set (0.01 sec)
+
+-- ENUM que permite que informemos quais serão os dados que ele pode aceitar:
+
+INSERT INTO compras (valor, data, observacoes, id_comprador, forma_pagamento) 
+VALUES (400, '2016-01-06', 'SSD 128GB', 1, 'BOLETO');
+Query OK, 1 row affected (0.01 sec)
+
+MariaDB [controledegastos]> SELECT * FROM compras WHERE id > 45;
++----+--------+------------+------------------+----------+--------------+-----------------+
+| id | valor  | data       | observacoes      | recebida | id_comprador | forma_pagamento |
++----+--------+------------+------------------+----------+--------------+-----------------+
+| 46 | 150.00 | 2018-02-06 | compras de teste |        0 |            2 | NULL            |
+| 48 | 400    | 2016-01-06 | SSD 128GB        |        0 |            1 | BOLETO          |
++----+--------+------------+------------------+----------+--------------+-----------------+
+2 rows in set (0.00 sec)
+
+INSERT INTO compras (valor, data, observacoes, id_comprador, forma_pagamento) 
+VALUES (1400, '2018-01-06', 'CELULAR', 1, 'DINHEIRO');
+Query OK, 1 row affected, 1 warning (0.00 sec)
+
+MariaDB [controledegastos]> SELECT * FROM compras WHERE id > 45;
++----+--------+------------+------------------+----------+--------------+-----------------+
+| id | valor  | data       | observacoes      | recebida | id_comprador | forma_pagamento |
++----+--------+------------+------------------+----------+--------------+-----------------+
+| 46 | 150.00 | 2018-02-06 | compras de teste |        0 |            2 | NULL            |
+| 48 | 400    | 2016-01-06 | SSD 128GB        |        0 |            1 | BOLETO          |
+| 49 | 1400   | 2018-01-06 | CELULAR          |        0 |            1 |                 |
++----+--------+------------+------------------+----------+--------------+-----------------+
+3 rows in set (0.00 sec)
+
+
+```
+
+### 6.5 SERVER SQL MODES
+
+https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html
+
+O MySQL impediu que fosse adicionado um valor diferente de "BOLETO" ou "CREDITO", mas o que realmente precisamos é que ele simplesmente não deixe adicionar uma compra que não tenha pelo menos uma dessas formas de pagamento. Além das configurações das tabelas, podemos também configurar o próprio servidor do MySQL. O servidor do MySQL opera em diferentes SQL modes e dentre esses modos, existe o strict mode que tem a finalidade de tratar valores inválidos que configuramos em nossas tabelas para instruções de INSERT e UPDATE , como por exemplo, o nosso ENUM . Para habilitar o strict mode precisamos alterar o SQL mode da nossa sessão. Nesse caso usaremos o modo "STRICT_ALL_TABLES":
+
+```sql
+
+-- Apenas de sessão
+SET SESSION sql_mode = 'STRICT_ALL_TABLES';
+Query OK, 0 rows affected (0.01 sec)
+
+-- verificar 
+ 
+ SELECT @@SESSION.sql_mode;
++--------------------+
+| @@SESSION.sql_mode |
++--------------------+
+| STRICT_ALL_TABLES  |
++--------------------+
+1 row in set (0.00 sec)
+
+-- configuramos o SQL mode do MySQL para impedir a inserção de valores inválidos. (apagamos o ultimo valor inválido)
+
+-- Tentando inserir dados inválidos novamente!
+
+INSERT INTO compras (valor, data, observacoes, id_comprador, forma_pagamento) 
+VALUES (1400, '2018-01-06', 'CELULAR', 1, 'DINHEIRO');
+ERROR 1265 (01000): Data truncated for column 'forma_pagamento' at row 1
+
+
+-- fazendo a configuração global do SQL mode
+
+SET GLOBAL sql_mode = 'STRICT_ALL_TABLES';
+Query OK, 0 rows affected (0.00 sec)
+
+SELECT @@GLOBAL.sql_mode;
++-------------------+
+| @@GLOBAL.sql_mode |
++-------------------+
+| STRICT_ALL_TABLES |
++-------------------+
+1 row in set (0.00 sec)
+
+```
+
+OBS.: O ENUM é uma boa solução quando queremos restringir valores específicos e já esperados em um coluna, porém não faz parte do padrão ANSI que é o padrão para a escrita de instruções SQL , ou seja, é um recurso exclusivo do MySQL e cada banco de dados possui a sua própria implementação para essa mesma funcionadalidade.
+
+### Lista 6 Exercícios
+
+https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/6-ListaExercicios
 
 
 [Voltar ao Índice](#indice)
 
 ---
 
-## <a name="parte7"></a>
+## <a name="parte7">ALUNOS SEM MATRÍCULA E O EXISTS</a>
 
 
 [Voltar ao Índice](#indice)
