@@ -1373,6 +1373,251 @@ https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tr
 
 ## <a name="parte7">ALUNOS SEM MATRÍCULA E O EXISTS</a>
 
+SQL -> https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/MaterialDoLivro
+
+```sql
+
+-- Recomendo importanção via Ferramenta MySQL Workbench !!
+
+C:\Users\josemalcher\Documents\01-SERVs\xampp_php7.2.1\mysql\bin
+λ mysql -uroot -p escola < escola.sql
+
+MariaDB [escola]> SHOW TABLES;
++------------------+
+| Tables_in_escola |
++------------------+
+| aluno            |
+| curso            |
+| exercicio        |
+| matricula        |
+| nota             |
+| resposta         |
+| secao            |
++------------------+
+7 rows in set (0.00 sec)
+
+```
+
+Verificando as informações das tabelas:
+
+```sql
+ DESC aluno;
++-------+--------------+------+-----+---------+----------------+
+| Field | Type         | Null | Key | Default | Extra          |
++-------+--------------+------+-----+---------+----------------+
+| id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+| nome  | varchar(255) | NO   |     |         |                |
+| email | varchar(255) | NO   |     |         |                |
++-------+--------------+------+-----+---------+----------------+
+3 rows in set (0.08 sec)
+
+DESC curso;
++-------+--------------+------+-----+---------+----------------+
+| Field | Type         | Null | Key | Default | Extra          |
++-------+--------------+------+-----+---------+----------------+
+| id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+| nome  | varchar(255) | NO   |     |         |                |
++-------+--------------+------+-----+---------+----------------+
+2 rows in set (0.02 sec)
+
+DESC matricula;
++----------+-------------+------+-----+---------+----------------+
+| Field    | Type        | Null | Key | Default | Extra          |
++----------+-------------+------+-----+---------+----------------+
+| id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+| aluno_id | int(11)     | NO   |     | NULL    |                |
+| curso_id | int(11)     | NO   |     | NULL    |                |
+| data     | datetime    | NO   |     | NULL    |                |
+| tipo     | varchar(20) | NO   |     |         |                |
++----------+-------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+```
+
+```sql
+ SELECT a.nome, c.nome FROM aluno a, matricula m, curso c 
+ WHERE a.id = m.aluno_id 
+   AND c.id = m.curso_id;
++-----------------+------------------------------------+
+| nome            | nome                               |
++-----------------+------------------------------------+
+| João da Silva   | SQL e banco de dados               |
+| Frederico José  | SQL e banco de dados               |
+| Alberto Santos  | Scrum e métodos ágeis              |
+| Renata Alonso   | C# e orientação a objetos          |
+| Paulo José      | SQL e banco de dados               |
+| Manoel Santos   | Scrum e métodos ágeis              |
+| Renata Ferreira | Desenvolvimento web com VRaptor    |
+| Paula Soares    | Desenvolvimento mobile com Android |
+| Renata Alonso   | Desenvolvimento mobile com Android |
+| Manoel Santos   | SQL e banco de dados               |
+| João da Silva   | C# e orientação a objetos          |
+| Frederico José  | C# e orientação a objetos          |
+| Alberto Santos  | C# e orientação a objetos          |
+| Frederico José  | Desenvolvimento web com VRaptor    |
++-----------------+------------------------------------+
+14 rows in set (0.00 sec)
+
+SELECT a.nome, c.nome 
+FROM aluno a 
+JOIN matricula m ON m.aluno_id = a.id 
+JOIN     curso c ON m.curso_id = c.id;
+
++-----------------+------------------------------------+
+| nome            | nome                               |
++-----------------+------------------------------------+
+| João da Silva   | SQL e banco de dados               |
+| Frederico José  | SQL e banco de dados               |
+| Alberto Santos  | Scrum e métodos ágeis              |
+| Renata Alonso   | C# e orientação a objetos          |
+| Paulo José      | SQL e banco de dados               |
+| Manoel Santos   | Scrum e métodos ágeis              |
+| Renata Ferreira | Desenvolvimento web com VRaptor    |
+| Paula Soares    | Desenvolvimento mobile com Android |
+| Renata Alonso   | Desenvolvimento mobile com Android |
+| Manoel Santos   | SQL e banco de dados               |
+| João da Silva   | C# e orientação a objetos          |
+| Frederico José  | C# e orientação a objetos          |
+| Alberto Santos  | C# e orientação a objetos          |
+| Frederico José  | Desenvolvimento web com VRaptor    |
++-----------------+------------------------------------+
+14 rows in set (0.00 sec)
+
+```
+
+### 7.1 SUBQUERIES
+
+A função EXISTS() para verificar se existe algum registro de acordo com uma determinada query:
+
+```sql
+> SELECT a.nome FROM aluno a WHERE EXISTS(SELECT m.id FROM matricula m WHERE m.aluno_id = a.id);
++-----------------+
+| nome            |
++-----------------+
+| João da Silva   |
+| Frederico José  |
+| Alberto Santos  |
+| Renata Alonso   |
+| Paulo José      |
+| Manoel Santos   |
+| Renata Ferreira |
+| Paula Soares    |
++-----------------+
+8 rows in set (0.00 sec)
+
+```
+Quando utilizamos o EXISTS() indicamos que queremos o retorno de todos os alunos nomes dos alunos ( a.nome ) que estão na tabela aluno , porém, queremos apenas se existir uma matrícula para esse aluno EXISTS(SELECT m.id FROM matricula m WHERE m.aluno_id = a.id).
+
+Retornando os alunos NÃO matriculados
+```sql
+SELECT a.nome FROM aluno a WHERE NOT EXISTS(SELECT m.id FROM matricula m WHERE m.aluno_id = a.id);
++------------------+
+| nome             |
++------------------+
+| Paulo da Silva   |
+| Carlos Cunha     |
+| Jose da Silva    |
+| Danilo Cunha     |
+| Zilmira José     |
+| Cristaldo Santos |
+| Osmir Ferreira   |
+| Claudio Soares   |
++------------------+
+8 rows in set (0.00 sec)
+```
+
+Pegar todos os exercícios que não foram respondidos utilizando novamente o NOT EXISTS: 
+
+```sql
+DESC exercicio;
++------------------+--------------+------+-----+---------+----------------+
+| Field            | Type         | Null | Key | Default | Extra          |
++------------------+--------------+------+-----+---------+----------------+
+| id               | int(11)      | NO   | PRI | NULL    | auto_increment |
+| secao_id         | int(11)      | NO   |     | NULL    |                |
+| pergunta         | varchar(255) | NO   |     | NULL    |                |
+| resposta_oficial | varchar(255) | NO   |     | NULL    |                |
++------------------+--------------+------+-----+---------+----------------+
+4 rows in set (0.02 sec)
+
+DESC resposta;
++---------------+--------------+------+-----+---------+----------------+
+| Field         | Type         | Null | Key | Default | Extra          |
++---------------+--------------+------+-----+---------+----------------+
+| id            | int(11)      | NO   | PRI | NULL    | auto_increment |
+| exercicio_id  | int(11)      | YES  |     | NULL    |                |
+| aluno_id      | int(11)      | YES  |     | NULL    |                |
+| resposta_dada | varchar(255) | YES  |     | NULL    |                |
++---------------+--------------+------+-----+---------+----------------+
+4 rows in set (0.04 sec)
+
+SELECT r.id FROM resposta r, exercicio e WHERE r.exercicio_id = e.id;
++----+
+| id |
++----+
+|  1 |
+|  2 |
+|  3 |
+|  4 |
+|  5 |
+|  6 |
+|  7 |
+|  8 |
+|  9 |
+| 10 |
+| 11 |
+| 12 |
+| 13 |
+| 14 |
+| 15 |
+| 16 |
+| 17 |
+| 18 |
+| 19 |
+| 20 |
+| 21 |
+| 22 |
+| 23 |
+| 24 |
+| 25 |
+| 26 |
+| 27 |
++----+
+27 rows in set (0.00 sec)
+
+MariaDB [escola]> SELECT * FROM exercicio e WHERE NOT EXISTS(SELECT r.id FROM resposta r WHERE r.exercicio_id = e.id);
++----+----------+------------------------------+------------------------------------------------------+
+| id | secao_id | pergunta                     | resposta_oficial                                     |
++----+----------+------------------------------+------------------------------------------------------+
+|  8 |        4 | como funciona?               | insert into (coluna1, coluna2) values (v1, v2)       |
+|  9 |        5 | Como funciona a web?         | requisicao e resposta                                |
+| 10 |        5 | Que linguagens posso ajudar? | varias, java, php, c#, etc                           |
+| 11 |        6 | O que eh MVC?                | model view controller                                |
+| 12 |        6 | Frameworks que usam?         | vraptor, spring mvc, struts, etc                     |
+| 14 |        8 | O que é um interceptor?      | eh como se fosse um filtro que eh executado antes    |
+| 15 |        8 | quando usar?                 | tratamento de excecoes, conexao com o banco de dados |
++----+----------+------------------------------+------------------------------------------------------+
+7 rows in set (0.00 sec)
+```
+
+retornar todos os cursos que não possuem matrícula:
+
+```sql
+ SELECT c.nome FROM curso c WHERE NOT EXISTS(SELECT m.id FROM matricula m WHERE m.curso_id = c.id);
++--------------------------------+
+| nome                           |
++--------------------------------+
+| Java e orientação a objetos    |
+| Desenvolvimento mobile com iOS |
+| Ruby on Rails                  |
+| PHP e MySql                    |
++--------------------------------+
+4 rows in set (0.00 sec)
+```
+
+### Exercício
+
+https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/7-ListaExercicios
+
 
 [Voltar ao Índice](#indice)
 
