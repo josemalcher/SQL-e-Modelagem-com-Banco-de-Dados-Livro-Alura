@@ -1623,7 +1623,9 @@ https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tr
 
 ---
 
-## <a name="parte8"></a>
+## <a name="parte8">AGRUPANDO DADOS COM GROUP BY</a>
+
+
 
 
 [Voltar ao Índice](#indice)
