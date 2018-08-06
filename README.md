@@ -2005,7 +2005,197 @@ Exercício 08
 
 ---
 
-## <a name="parte9"></a>
+## <a name="parte9">FILTRANDO AGREGAÇÕES E O HAVING</a>
+
+Todo o fim de semestre, a instituição de ensino precisa montar os boletins dos alunos. Então vamos
+montar a query que retornará todas as informações para montar o boletim. Começaremos retornando
+todas as notas dos alunos:
+
+```sql
+MariaDB [escola]> SELECT n.nota FROM nota n
+    -> JOIN resposta r ON r.id = n.resposta_id
+    -> JOIN exercicio e ON e.id = r.exercicio_id
+    -> JOIN secao s ON s.id = e.secao_id
+    -> JOIN curso c ON c.id = s.curso_id
+    -> JOIN aluno a ON a.id = r.aluno_id;
++-------+
+| nota  |
++-------+
+|  8.00 |
+|  0.00 |
+|  7.00 |
+|  6.00 |
+|  9.00 |
+| 10.00 |
+|  4.00 |
+|  4.00 |
+|  7.00 |
+|  8.00 |
+|  6.00 |
+|  7.00 |
+|  4.00 |
+|  9.00 |
+|  3.00 |
+|  5.00 |
+|  5.00 |
+|  5.00 |
+|  6.00 |
+|  8.00 |
+|  8.00 |
+|  9.00 |
+| 10.00 |
+|  2.00 |
+|  0.00 |
+|  1.00 |
+|  4.00 |
++-------+
+27 rows in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT a.nome,c.nome,AVG( n.nota)
+    -> FROM nota n
+    -> JOIN resposta r ON r.id = n.resposta_id
+    -> JOIN exercicio e ON e.id = r.exercicio_id
+    -> JOIN secao s ON s.id = e.secao_id
+    -> JOIN curso c ON c.id = s.curso_id
+    -> JOIN aluno a ON a.id = r.aluno_id;
++---------------+----------------------+--------------+
+| nome          | nome                 | AVG( n.nota) |
++---------------+----------------------+--------------+
+| João da Silva | SQL e banco de dados |     5.740741 |
++---------------+----------------------+--------------+
+1 row in set (0.00 sec)
+
+```
+
+Lembre-se que estamos lidando com uma função de agregação, ou seja, se não informarmos a forma
+que ela precisa agrupar as colunas, ela retornará apenas uma linha! Porém, precisamos sempre pensar
+em qual tipo de agrupamento é necessário, nesse caso queremos que mostre a média de acada aluno,
+então agruparemos pelos alunos, porém também que queremos que a cada curso que o alunos fez mostre
+a sua :
+
+```sql
+MariaDB [escola]> SELECT a.nome,c.nome,AVG( n.nota)
+    -> FROM nota n
+    -> JOIN resposta r ON r.id = n.resposta_id
+    -> JOIN exercicio e ON e.id = r.exercicio_id
+    -> JOIN secao s ON s.id = e.secao_id
+    -> JOIN curso c ON c.id = s.curso_id
+    -> JOIN aluno a ON a.id = r.aluno_id
+    -> GROUP BY a.nome, c.nome;
++----------------+---------------------------------+--------------+
+| nome           | nome                            | AVG( n.nota) |
++----------------+---------------------------------+--------------+
+| Alberto Santos | Scrum e métodos ágeis           |     5.777778 |
+| Frederico José | Desenvolvimento web com VRaptor |     8.000000 |
+| Frederico José | SQL e banco de dados            |     5.666667 |
+| João da Silva  | SQL e banco de dados            |     6.285714 |
+| Renata Alonso  | C# e orientação a objetos       |     4.857143 |
++----------------+---------------------------------+--------------+
+5 rows in set (0.00 sec)
+```
+
+#### 9.1 CONDIÇÕES COM HAVING
+
+Retornamos todas as médias dos alunos, porém a instituição precisa de um relatório separado para
+todos os alunos que reprovaram, ou seja, que tiraram nota baixa, nesse caso médias menores que 5. De
+acordo com o que vimos até agora bastaria adicionarmos um WHERE:
+
+```sql
+MariaDB [escola]> SELECT a.nome,c.nome,AVG( n.nota)
+    -> FROM nota n
+    -> JOIN resposta r ON r.id = n.resposta_id
+    -> JOIN exercicio e ON e.id = r.exercicio_id
+    -> JOIN secao s ON s.id = e.secao_id
+    -> JOIN curso c ON c.id = s.curso_id
+    -> JOIN aluno a ON a.id = r.aluno_id
+    -> WHERE AVG(n.nota) < 5
+    -> GROUP BY a.nome, c.nome;
+
+ERROR 1111 (HY000): Invalid use of group function
+```
+
+Nesse caso, estamos tentando adicionar condições para uma função de agregação, porém, quando
+queremos adicionar condições para funções de agregação precisamos utilizar o HAVING ao invés de
+WHERE :
+
+```sql
+MariaDB [escola]> SELECT a.nome,c.nome,AVG( n.nota)
+    -> FROM nota n
+    -> JOIN resposta r ON r.id = n.resposta_id
+    -> JOIN exercicio e ON e.id = r.exercicio_id
+    -> JOIN secao s ON s.id = e.secao_id
+    -> JOIN curso c ON c.id = s.curso_id
+    -> JOIN aluno a ON a.id = r.aluno_id
+    -> GROUP BY a.nome, c.nome
+    -> HAVING AVG(n.nota) < 5;
++---------------+---------------------------+--------------+
+| nome          | nome                      | AVG( n.nota) |
++---------------+---------------------------+--------------+
+| Renata Alonso | C# e orientação a objetos |     4.857143 |
++---------------+---------------------------+--------------+
+1 row in set (0.00 sec)
+
+```
+
+
+A instuição enviou mais uma solicitação de um relatório informando quais cursos tem poucos
+alunos para tomar uma decisão se vai manter os cursos ou se irá cancelá-los. Então vamos novamente
+fazer a nossa query por passos, primeiro vamos começar selecionando os cursos:
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(a.id) FROM curso c
+    -> JOIN matricula m ON m.curso_id = c.id
+    -> JOIN aluno a ON m.aluno_id = a.id
+    -> GROUP BY c.nome;
++------------------------------------+-------------+
+| nome                               | COUNT(a.id) |
++------------------------------------+-------------+
+| C# e orientação a objetos          |           4 |
+| Desenvolvimento mobile com Android |           2 |
+| Desenvolvimento web com VRaptor    |           2 |
+| Scrum e métodos ágeis              |           2 |
+| SQL e banco de dados               |           4 |
++------------------------------------+-------------+
+5 rows in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(a.id) FROM curso c
+    -> JOIN matricula m ON m.curso_id = c.id
+    -> JOIN aluno a ON m.aluno_id = a.id
+    -> GROUP BY c.nome
+    -> HAVING COUNT(a.id) < 10;
++------------------------------------+-------------+
+| nome                               | COUNT(a.id) |
++------------------------------------+-------------+
+| C# e orientação a objetos          |           4 |
+| Desenvolvimento mobile com Android |           2 |
+| Desenvolvimento web com VRaptor    |           2 |
+| Scrum e métodos ágeis              |           2 |
+| SQL e banco de dados               |           4 |
++------------------------------------+-------------+
+5 rows in set (0.00 sec)
+
+```
+
+#### resumindo
+
+Sabemos que para adicionarmos filtros apenas para colunas utilizamos a instrução WHERE e
+indicamos todas as peculiaridades necessárias, porém quando precisamos adicionar filtros para funções
+de agregação, como por exemplo o AVG() , precisamos utilizar a instrução HAVING . Além disso, é
+sempre bom lembrar que, quando estamos desenvolvendo queries grandes, é recomendado que faça
+passa-a-passo queries menores, ou seja, resolva os menores problemas juntando cada tabela por vez e
+teste para verificar se está funcionando, pois isso ajuda a verificar aonde está o problema da query.
+
+Lista de Exercícios
+
+- 
+
+
 
 
 [Voltar ao Índice](#indice)
