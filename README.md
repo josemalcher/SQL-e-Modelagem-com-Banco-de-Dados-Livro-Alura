@@ -1625,6 +1625,379 @@ https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tr
 
 ## <a name="parte8">AGRUPANDO DADOS COM GROUP BY</a>
 
+A instuição solicitou a média de todos os cursos para fazer uma comparação de notas para verificar se
+todos os cursos possuem a mesma média, quais cursos tem menores notas e quais possuem as maiores
+notas. Vamos verificar a estrutura de algumas tabelas da nossa base de dados, começaremos pela tabela
+curso:
+
+```sql
+MariaDB [escola]> desc curso;
++-------+--------------+------+-----+---------+----------------+
+| Field | Type         | Null | Key | Default | Extra          |
++-------+--------------+------+-----+---------+----------------+
+| id    | int(11)      | NO   | PRI | NULL    | auto_increment |
+| nome  | varchar(255) | NO   |     |         |                |
++-------+--------------+------+-----+---------+----------------+
+2 rows in set (0.01 sec)
+
+```
+
+```sql
+MariaDB [escola]> desc secao;
++------------+--------------+------+-----+---------+----------------+
+| Field      | Type         | Null | Key | Default | Extra          |
++------------+--------------+------+-----+---------+----------------+
+| id         | int(11)      | NO   | PRI | NULL    | auto_increment |
+| curso_id   | int(11)      | NO   |     | NULL    |                |
+| titulo     | varchar(255) | NO   |     |         |                |
+| explicacao | varchar(255) | NO   |     | NULL    |                |
+| numero     | int(11)      | NO   |     | NULL    |                |
++------------+--------------+------+-----+---------+----------------+
+5 rows in set (0.04 sec)
+
+```
+
+```sql
+MariaDB [escola]> desc exercicio;
++------------------+--------------+------+-----+---------+----------------+
+| Field            | Type         | Null | Key | Default | Extra          |
++------------------+--------------+------+-----+---------+----------------+
+| id               | int(11)      | NO   | PRI | NULL    | auto_increment |
+| secao_id         | int(11)      | NO   |     | NULL    |                |
+| pergunta         | varchar(255) | NO   |     | NULL    |                |
+| resposta_oficial | varchar(255) | NO   |     | NULL    |                |
++------------------+--------------+------+-----+---------+----------------+
+4 rows in set (0.11 sec)
+```
+
+```sql
+MariaDB [escola]> desc resposta;
++---------------+--------------+------+-----+---------+----------------+
+| Field         | Type         | Null | Key | Default | Extra          |
++---------------+--------------+------+-----+---------+----------------+
+| id            | int(11)      | NO   | PRI | NULL    | auto_increment |
+| exercicio_id  | int(11)      | YES  |     | NULL    |                |
+| aluno_id      | int(11)      | YES  |     | NULL    |                |
+| resposta_dada | varchar(255) | YES  |     | NULL    |                |
++---------------+--------------+------+-----+---------+----------------+
+4 rows in set (0.10 sec)
+
+```
+
+```sql
+MariaDB [escola]> desc nota;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| id          | int(11)       | NO   | PRI | NULL    | auto_increment |
+| resposta_id | int(11)       | YES  |     | NULL    |                |
+| nota        | decimal(18,2) | YES  |     | NULL    |                |
++-------------+---------------+------+-----+---------+----------------+
+3 rows in set (0.29 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT n.nota FROM nota n;
++-------+
+| nota  |
++-------+
+|  8.00 |
+|  0.00 |
+|  7.00 |
+|  6.00 |
+|  9.00 |
+| 10.00 |
+|  4.00 |
+|  4.00 |
+|  7.00 |
+|  8.00 |
+|  6.00 |
+|  7.00 |
+|  4.00 |
+|  9.00 |
+|  3.00 |
+|  5.00 |
+|  5.00 |
+|  5.00 |
+|  6.00 |
+|  8.00 |
+|  8.00 |
+|  9.00 |
+| 10.00 |
+|  2.00 |
+|  0.00 |
+|  1.00 |
+|  4.00 |
++-------+
+27 rows in set (0.02 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT n.nota FROM nota n
+    -> JOIN resposta r ON n.resposta_id = r.id;
++-------+
+| nota  |
++-------+
+|  8.00 |
+|  0.00 |
+|  7.00 |
+|  6.00 |
+|  9.00 |
+| 10.00 |
+|  4.00 |
+|  4.00 |
+|  7.00 |
+|  8.00 |
+|  6.00 |
+|  7.00 |
+|  4.00 |
+|  9.00 |
+|  3.00 |
+|  5.00 |
+|  5.00 |
+|  5.00 |
+|  6.00 |
+|  8.00 |
+|  8.00 |
+|  9.00 |
+| 10.00 |
+|  2.00 |
+|  0.00 |
+|  1.00 |
+|  4.00 |
++-------+
+27 rows in set (0.03 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT n.nota FROM nota n
+    -> JOIN resposta r ON n.resposta_id = r.id
+    -> JOIN exercicio e ON r.exercicio_id = e.id;
++-------+
+| nota  |
++-------+
+|  8.00 |
+|  0.00 |
+|  7.00 |
+|  6.00 |
+|  9.00 |
+| 10.00 |
+|  4.00 |
+|  4.00 |
+|  7.00 |
+|  8.00 |
+|  6.00 |
+|  7.00 |
+|  4.00 |
+|  9.00 |
+|  3.00 |
+|  5.00 |
+|  5.00 |
+|  5.00 |
+|  6.00 |
+|  8.00 |
+|  8.00 |
+|  9.00 |
+| 10.00 |
+|  2.00 |
+|  0.00 |
+|  1.00 |
+|  4.00 |
++-------+
+27 rows in set (0.00 sec)
+```
+
+```sql
+MariaDB [escola]> SELECT n.nota
+    -> FROM nota n
+    -> JOIN resposta r ON n.resposta_id = r.id
+    -> JOIN exercicio e ON r.exercicio_id = e.id
+    -> JOIN secao s ON e.secao_id = s.id;
++-------+
+| nota  |
++-------+
+|  8.00 |
+|  0.00 |
+|  7.00 |
+|  6.00 |
+|  9.00 |
+| 10.00 |
+|  4.00 |
+|  4.00 |
+|  7.00 |
+|  8.00 |
+|  6.00 |
+|  7.00 |
+|  4.00 |
+|  9.00 |
+|  3.00 |
+|  5.00 |
+|  5.00 |
+|  5.00 |
+|  6.00 |
+|  8.00 |
+|  8.00 |
+|  9.00 |
+| 10.00 |
+|  2.00 |
+|  0.00 |
+|  1.00 |
+|  4.00 |
++-------+
+27 rows in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT n.nota
+    ->FROM nota n
+    ->JOIN resposta r ON n.resposta_id = r.id
+    ->JOIN exercicio e ON r.exercicio_id = e.id
+    ->JOIN secao s ON e.secao_id = s.id
+    ->JOIN curso c ON s.curso_id = c.id;
++-------+
+| nota  |
++-------+
+|  8.00 |
+|  0.00 |
+|  7.00 |
+|  6.00 |
+|  9.00 |
+| 10.00 |
+|  4.00 |
+|  4.00 |
+|  7.00 |
+|  8.00 |
+|  6.00 |
+|  7.00 |
+|  4.00 |
+|  9.00 |
+|  3.00 |
+|  5.00 |
+|  5.00 |
+|  5.00 |
+|  6.00 |
+|  8.00 |
+|  8.00 |
+|  9.00 |
+| 10.00 |
+|  2.00 |
+|  0.00 |
+|  1.00 |
+|  4.00 |
++-------+
+27 rows in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT AVG(n.nota)
+    -> FROM nota n
+    ->        JOIN resposta r ON n.resposta_id = r.id
+    ->        JOIN exercicio e ON r.exercicio_id = e.id
+    ->        JOIN secao s ON e.secao_id = s.id
+    ->        JOIN curso c ON s.curso_id = c.id;
++-------------+
+| AVG(n.nota) |
++-------------+
+|    5.740741 |
++-------------+
+1 row in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT c.nome,
+    ->        AVG(n.nota)
+    -> FROM nota n
+    ->        JOIN resposta r ON n.resposta_id = r.id
+    ->        JOIN exercicio e ON r.exercicio_id = e.id
+    ->        JOIN secao s ON e.secao_id = s.id
+    ->        JOIN curso c ON s.curso_id = c.id;
++----------------------+-------------+
+| nome                 | AVG(n.nota) |
++----------------------+-------------+
+| SQL e banco de dados |    5.740741 |
++----------------------+-------------+
+1 row in set (0.00 sec)
+```
+
+```sql
+MariaDB [escola]> SELECT c.nome,
+    ->        AVG(n.nota)
+    -> FROM nota n
+    ->        JOIN resposta r ON n.resposta_id = r.id
+    ->        JOIN exercicio e ON r.exercicio_id = e.id
+    ->        JOIN secao s ON e.secao_id = s.id
+    ->        JOIN curso c ON s.curso_id = c.id
+    -> GROUP BY c.nome;
++---------------------------------+-------------+
+| nome                            | AVG(n.nota) |
++---------------------------------+-------------+
+| C# e orientação a objetos       |    4.857143 |
+| Desenvolvimento web com VRaptor |    8.000000 |
+| Scrum e métodos ágeis           |    5.777778 |
+| SQL e banco de dados            |    6.100000 |
++---------------------------------+-------------+
+4 rows in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT COUNT(*) FROM exercicio;
++----------+
+| COUNT(*) |
++----------+
+|       31 |
++----------+
+1 row in set (0.00 sec)
+```
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(*) AS contagem FROM exercicio e
+    -> JOIN secao s ON e.secao_id = s.id
+    -> JOIN curso c ON s.curso_id = c.id
+    -> GROUP BY c.nome;
++---------------------------------+----------+
+| nome                            | contagem |
++---------------------------------+----------+
+| C# e orientação a objetos       |        7 |
+| Desenvolvimento web com VRaptor |        7 |
+| Scrum e métodos ágeis           |        9 |
+| SQL e banco de dados            |        8 |
++---------------------------------+----------+
+4 rows in set (0.00 sec)
+
+```
+
+Todo final de semestre nós precisamos enviar um relatório para o MEC informando quantos alunos
+estão matriculados em cada curso da instituição. Faremos novamente a nossa query por partes, vamos
+retornar primeiro todos os cursos:
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(a.id) AS quantidade
+    -> FROM curso c
+    -> JOIN matricula m ON m.curso_id = c.id
+    -> JOIN aluno a ON m.aluno_id = a.id
+    -> GROUP BY c.nome;
++------------------------------------+------------+
+| nome                               | quantidade |
++------------------------------------+------------+
+| C# e orientação a objetos          |          4 |
+| Desenvolvimento mobile com Android |          2 |
+| Desenvolvimento web com VRaptor    |          2 |
+| Scrum e métodos ágeis              |          2 |
+| SQL e banco de dados               |          4 |
++------------------------------------+------------+
+5 rows in set (0.00 sec)
+```
+
+Exercício 08
+
+- 
 
 
 
