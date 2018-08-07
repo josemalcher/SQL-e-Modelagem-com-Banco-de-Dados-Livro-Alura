@@ -2452,7 +2452,220 @@ retornado, ao invés de ficar preenchendo a nossa query com vários OR s.
 
 ---
 
-## <a name="parte11"></a>
+## <a name="parte11">SUB-QUERIES</a>
+
+A instituição precisa de um relatório mais robusto, com as seguintes informações: Precisa do nome do
+aluno e curso, a média do aluno em relação ao curso e a diferença entre a média do aluno e a média geral
+do curso.
+
+```sql
+MariaDB [escola]> SELECT a.nome, c.nome, n.nota, AVG(n.nota)
+    -> FROM nota n
+    -> JOIN resposta r ON n.resposta_id = r.id
+    -> JOIN exercicio e ON r.exercicio_id = r.exercicio_id
+    -> JOIN secao s ON e.secao_id = s.id
+    -> JOIN curso c ON s.curso_id = c.id
+    -> JOIN aluno a ON r.aluno_id = a.id
+    -> GROUP BY a.nome, c.nome;
++----------------+---------------------------------+------+-------------+
+| nome           | nome                            | nota | AVG(n.nota) |
++----------------+---------------------------------+------+-------------+
+| Alberto Santos | C# e orientação a objetos       | 7.00 |    5.777778 |
+| Alberto Santos | Desenvolvimento web com VRaptor | 7.00 |    5.777778 |
+| Alberto Santos | Scrum e métodos ágeis           | 7.00 |    5.777778 |
+| Alberto Santos | SQL e banco de dados            | 7.00 |    5.777778 |
+| Frederico José | C# e orientação a objetos       | 4.00 |    6.250000 |
+| Frederico José | Desenvolvimento web com VRaptor | 4.00 |    6.250000 |
+| Frederico José | Scrum e métodos ágeis           | 4.00 |    6.250000 |
+| Frederico José | SQL e banco de dados            | 4.00 |    6.250000 |
+| João da Silva  | C# e orientação a objetos       | 8.00 |    6.285714 |
+| João da Silva  | Desenvolvimento web com VRaptor | 8.00 |    6.285714 |
+| João da Silva  | Scrum e métodos ágeis           | 8.00 |    6.285714 |
+| João da Silva  | SQL e banco de dados            | 8.00 |    6.285714 |
+| Renata Alonso  | C# e orientação a objetos       | 8.00 |    4.857143 |
+| Renata Alonso  | Desenvolvimento web com VRaptor | 8.00 |    4.857143 |
+| Renata Alonso  | Scrum e métodos ágeis           | 8.00 |    4.857143 |
+| Renata Alonso  | SQL e banco de dados            | 8.00 |    4.857143 |
++----------------+---------------------------------+------+-------------+
+16 rows in set (0.00 sec)
+
+```
+
+Agora nós temos a média do aluno e seu respectivo curso, mas ainda falta a coluna da diferença que
+calcula a diferença entre a média do aluno em um determinado curso e subtrai pela média geral. Porém
+ainda não temos a média geral, então como podemos pegar a média geral? Vamos verificar a tabela
+nota :
+
+```sql
+MariaDB [escola]> SELECT a.nome, c.nome, n.nota, AVG(n.nota) AS media_aluno,
+    ->     AVG(n.nota) - (SELECT AVG(n.nota) FROM nota n) AS diferenca
+    -> FROM nota n
+    -> JOIN resposta r ON n.resposta_id = r.id
+    -> JOIN exercicio e ON r.exercicio_id = r.exercicio_id
+    -> JOIN secao s ON e.secao_id = s.id
+    -> JOIN curso c ON s.curso_id = c.id
+    -> JOIN aluno a ON r.aluno_id = a.id
+    -> GROUP BY a.nome, c.nome;
++----------------+---------------------------------+------+-------------+-----------+
+| nome           | nome                            | nota | media_aluno | diferenca |
++----------------+---------------------------------+------+-------------+-----------+
+| Alberto Santos | C# e orientação a objetos       | 7.00 |    5.777778 |  0.037037 |
+| Alberto Santos | Desenvolvimento web com VRaptor | 7.00 |    5.777778 |  0.037037 |
+| Alberto Santos | Scrum e métodos ágeis           | 7.00 |    5.777778 |  0.037037 |
+| Alberto Santos | SQL e banco de dados            | 7.00 |    5.777778 |  0.037037 |
+| Frederico José | C# e orientação a objetos       | 4.00 |    6.250000 |  0.509259 |
+| Frederico José | Desenvolvimento web com VRaptor | 4.00 |    6.250000 |  0.509259 |
+| Frederico José | Scrum e métodos ágeis           | 4.00 |    6.250000 |  0.509259 |
+| Frederico José | SQL e banco de dados            | 4.00 |    6.250000 |  0.509259 |
+| João da Silva  | C# e orientação a objetos       | 8.00 |    6.285714 |  0.544974 |
+| João da Silva  | Desenvolvimento web com VRaptor | 8.00 |    6.285714 |  0.544974 |
+| João da Silva  | Scrum e métodos ágeis           | 8.00 |    6.285714 |  0.544974 |
+| João da Silva  | SQL e banco de dados            | 8.00 |    6.285714 |  0.544974 |
+| Renata Alonso  | C# e orientação a objetos       | 8.00 |    4.857143 | -0.883598 |
+| Renata Alonso  | Desenvolvimento web com VRaptor | 8.00 |    4.857143 | -0.883598 |
+| Renata Alonso  | Scrum e métodos ágeis           | 8.00 |    4.857143 | -0.883598 |
+| Renata Alonso  | SQL e banco de dados            | 8.00 |    4.857143 | -0.883598 |
++----------------+---------------------------------+------+-------------+-----------+
+16 rows in set (0.00 sec)
+
+```
+
+CORREÇÕES + MEDIA GERAL:
+
+```sql
+SELECT a.nome,
+    ->        c.nome,
+    ->        AVG(n.nota) AS media_aluno,
+    ->        (SELECT AVG(n.nota) FROM nota n) AS media_geral,
+    ->        AVG(n.nota) - (SELECT AVG(n.nota) FROM nota n) AS diferenca
+    -> FROM nota n
+    -> JOIN resposta r ON n.resposta_id = r.id
+    -> JOIN exercicio e ON r.exercicio_id = e.id
+    -> JOIN secao s ON e.secao_id = s.id
+    -> JOIN curso c ON s.curso_id = c.id
+    -> JOIN aluno a ON r.aluno_id = a.id
+    -> GROUP BY a.nome, c.nome;
++----------------+---------------------------------+-------------+-------------+-----------+
+| nome           | nome                            | media_aluno | media_geral | diferenca |
++----------------+---------------------------------+-------------+-------------+-----------+
+| Alberto Santos | Scrum e métodos ágeis           |    5.777778 |    5.740741 |  0.037037 |
+| Frederico José | Desenvolvimento web com VRaptor |    8.000000 |    5.740741 |  2.259259 |
+| Frederico José | SQL e banco de dados            |    5.666667 |    5.740741 | -0.074074 |
+| João da Silva  | SQL e banco de dados            |    6.285714 |    5.740741 |  0.544974 |
+| Renata Alonso  | C# e orientação a objetos       |    4.857143 |    5.740741 | -0.883598 |
++----------------+---------------------------------+-------------+-------------+-----------+
+5 rows in set (0.00 sec)
+
+
+```
+
+Conseguimos exibir o relatório como esperado, porém existe um pequeno detalhe. Note que o
+resultado da subquery (SELECT AVG(n.nota) FROM nota n) foi de apenas uma linha e é justamente por
+esse motivo que conseguimos efetuar operações aritméticas como, nesse caso, a subtração. Se o resultado
+fosse mais de uma linha, não seria possível realizar operações.
+
+
+A instituição precisa de um relatório do aproveitamento dos alunos nos cursos, ou seja, precisamos
+saber se eles estão respondendo todos os exercícios, então iremos buscar o número de respostas que cada
+respondeu aluno individualmente.
+
+```sql
+MariaDB [escola]> SELECT a.nome,
+    ->        (SELECT COUNT(r.id) FROM resposta r WHERE r.aluno_id = a.id) AS quantidade_respostas
+    -> FROM aluno a;
++------------------+----------------------+
+| nome             | quantidade_respostas |
++------------------+----------------------+
+| João da Silva    |                    7 |
+| Frederico José   |                    4 |
+| Alberto Santos   |                    9 |
+| Renata Alonso    |                    7 |
+| Paulo da Silva   |                    0 |
+| Carlos Cunha     |                    0 |
+| Paulo José       |                    0 |
+| Manoel Santos    |                    0 |
+| Renata Ferreira  |                    0 |
+| Paula Soares     |                    0 |
+| Jose da Silva    |                    0 |
+| Danilo Cunha     |                    0 |
+| Zilmira José     |                    0 |
+| Cristaldo Santos |                    0 |
+| Osmir Ferreira   |                    0 |
+| Claudio Soares   |                    0 |
++------------------+----------------------+
+16 rows in set (0.00 sec)
+
+```
+
+A instituição precisa de uma relatório muito parecido com a query que acabamos de fazer, ela precisa
+saber quantas matrículas um aluno tem, ou seja, ao ínves de resposta, informaremos as matrículas. Então
+vamos apenas substituir as informações das respostas pelas informações da matrícula:
+
+```sql
+MariaDB [escola]> SELECT a.nome,
+    ->        (SELECT COUNT(m.id) FROM matricula m WHERE m.aluno_id = a.id) AS quantidade_matricula
+    -> FROM aluno a;
++------------------+----------------------+
+| nome             | quantidade_matricula |
++------------------+----------------------+
+| João da Silva    |                    2 |
+| Frederico José   |                    3 |
+| Alberto Santos   |                    2 |
+| Renata Alonso    |                    2 |
+| Paulo da Silva   |                    0 |
+| Carlos Cunha     |                    0 |
+| Paulo José       |                    1 |
+| Manoel Santos    |                    2 |
+| Renata Ferreira  |                    1 |
+| Paula Soares     |                    1 |
+| Jose da Silva    |                    0 |
+| Danilo Cunha     |                    0 |
+| Zilmira José     |                    0 |
+| Cristaldo Santos |                    0 |
+| Osmir Ferreira   |                    0 |
+| Claudio Soares   |                    0 |
++------------------+----------------------+
+16 rows in set (0.00 sec)
+
+
+```
+
+
+Conseguimos pegar a quantidade de resposta e matricula de um determinado aluno, porém fizemos
+isso separadamente, porém agora precisamos juntar essas informações para montar em um único
+relatório que mostre, o nome do aluno, a quantidade de respostas e a quantidade de matrículas. Então
+vamos partir do princípio, ou seja, fazer a query que retorna todos os alunos:
+
+```sql
+MariaDB [escola]> SELECT a.nome,
+    ->        (SELECT COUNT(m.id) FROM matricula m WHERE m.aluno_id = a.id) AS quantidade_matricula,
+    ->        (SELECT COUNT(r.id) FROM resposta r WHERE r.aluno_id = a.id) AS quantidade_respostas
+    -> FROM aluno a;
++------------------+----------------------+----------------------+
+| nome             | quantidade_matricula | quantidade_respostas |
++------------------+----------------------+----------------------+
+| João da Silva    |                    2 |                    7 |
+| Frederico José   |                    3 |                    4 |
+| Alberto Santos   |                    2 |                    9 |
+| Renata Alonso    |                    2 |                    7 |
+| Paulo da Silva   |                    0 |                    0 |
+| Carlos Cunha     |                    0 |                    0 |
+| Paulo José       |                    1 |                    0 |
+| Manoel Santos    |                    2 |                    0 |
+| Renata Ferreira  |                    1 |                    0 |
+| Paula Soares     |                    1 |                    0 |
+| Jose da Silva    |                    0 |                    0 |
+| Danilo Cunha     |                    0 |                    0 |
+| Zilmira José     |                    0 |                    0 |
+| Cristaldo Santos |                    0 |                    0 |
+| Osmir Ferreira   |                    0 |                    0 |
+| Claudio Soares   |                    0 |                    0 |
++------------------+----------------------+----------------------+
+16 rows in set (0.00 sec)
+
+```
+
+
 
 
 [Voltar ao Índice](#indice)
