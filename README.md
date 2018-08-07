@@ -2202,7 +2202,250 @@ Lista de Exercícios
 
 ---
 
-## <a name="parte10"></a>
+## <a name="parte10">MÚLTIPLOS VALORES NA CONDIÇÃO E O IN</a>
+
+O setor de financeiro dessa instituição, solicitou um relatório informando todas as formas de pagamento
+cadastradas no banco de dados para verificar se está de acordo com o que eles trabalham. Na base de
+dados, se verificarmos a tabela matricula :
+
+```sql
+MariaDB [escola]> SELECT  m.tipo FROM matricula m;
++-------------+
+| tipo        |
++-------------+
+| PAGA_PF     |
+| PAGA_PJ     |
+| PAGA_PF     |
+| PAGA_CHEQUE |
+| PAGA_BOLETO |
+| PAGA_PJ     |
+| PAGA_PF     |
+| PAGA_PJ     |
+| PAGA_PJ     |
+| PAGA_CHEQUE |
+| PAGA_BOLETO |
+| PAGA_PJ     |
+| PAGA_PF     |
+| PAGA_PJ     |
++-------------+
+14 rows in set (0.00 sec)
+
+```
+Veja que foram retornados tipos de pagamento iguais, porém precisamos enviar um relatório apenas
+com os tipos de pagamento distintos. Para retornamos os valores distintos de uma coluna podemos
+utilizar a instrução DISTINCT :
+
+```sql
+MariaDB [escola]> SELECT DISTINCT m.tipo FROM matricula m;
++-------------+
+| tipo        |
++-------------+
+| PAGA_PF     |
+| PAGA_PJ     |
+| PAGA_CHEQUE |
+| PAGA_BOLETO |
++-------------+
+4 rows in set (0.00 sec)
+
+```
+
+Conseguimos retornar o relatório das formas de pagamento, porém o setor financeiro ainda precisa
+saber de mais informações. Agora foi solicitado que enviasse um relatório com os cursos e a quantidade
+de alunos que possuem o tipo de pagamento PJ. 
+
+Sabemos que o relatório é sobre a quantidade de matrículas que foram pagas como PJ, precisamos
+contar, ou seja, usaremos a função COUNT() . Vamos começar a contar a quantidade de matrículas:
+
+```sql
+MariaDB [escola]> SELECT COUNT(m.id) FROM matricula m;
++-------------+
+| COUNT(m.id) |
++-------------+
+|          14 |
++-------------+
+1 row in set (0.00 sec)
+
+```
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(m.id) FROM matricula m
+    -> JOIN curso c ON m.curso_id = c.id;
++----------------------+-------------+
+| nome                 | COUNT(m.id) |
++----------------------+-------------+
+| SQL e banco de dados |          14 |
++----------------------+-------------+
+1 row in set (0.00 sec)
+
+```
+
+Observe que foi retornado apenas uma linha! Isso significa que a função COUNT() também é uma
+função de agregação, ou seja, se queremos adicionar mais colunas na nossa query, precisamos agrupá-las.
+Então vamos agrupar o nome do curso:
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(m.id) FROM matricula m
+    -> JOIN curso c ON m.curso_id = c.id
+    -> GROUP BY c.nome;
++------------------------------------+-------------+
+| nome                               | COUNT(m.id) |
++------------------------------------+-------------+
+| C# e orientação a objetos          |           4 |
+| Desenvolvimento mobile com Android |           2 |
+| Desenvolvimento web com VRaptor    |           2 |
+| Scrum e métodos ágeis              |           2 |
+| SQL e banco de dados               |           4 |
++------------------------------------+-------------+
+5 rows in set (0.00 sec)
+```
+
+Conseguimos retornar todas os cursos e a quantidade de matrículas, porém precisamos filtrar por
+tipo de pagamento PJ. Então vamos adicionar um WHERE :
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(m.id) FROM matricula m
+    -> JOIN curso c ON m.curso_id = c.id
+    -> WHERE m.tipo = 'PAGA_PJ'
+    -> GROUP BY c.nome;
++------------------------------------+-------------+
+| nome                               | COUNT(m.id) |
++------------------------------------+-------------+
+| C# e orientação a objetos          |           1 |
+| Desenvolvimento mobile com Android |           2 |
+| Desenvolvimento web com VRaptor    |           1 |
+| Scrum e métodos ágeis              |           1 |
+| SQL e banco de dados               |           1 |
++------------------------------------+-------------+
+5 rows in set (0.00 sec)
+```
+
+#### FILTROS UTILIZANDO O IN
+
+O setor financeiro da instituição precisa de mais detalhes sobre os tipos de pagamento de cada curso,
+eles precisam de um relatório similar ao que fizemos, porém para todos que sejam pagamento PJ e PF.
+Para diferenciar o tipo de pagamento, precisaremos adicionar a coluna do m.tipo :
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(m.id), m.tipo
+    -> FROM matricula m
+    -> JOIN curso c ON m.curso_id = c.id
+    -> WHERE m.tipo = 'PAGA_PJ' OR m.tipo = 'PAGA_PF'
+    -> GROUP BY c.nome, m.tipo;
++------------------------------------+-------------+---------+
+| nome                               | COUNT(m.id) | tipo    |
++------------------------------------+-------------+---------+
+| C# e orientação a objetos          |           1 | PAGA_PF |
+| C# e orientação a objetos          |           1 | PAGA_PJ |
+| Desenvolvimento mobile com Android |           2 | PAGA_PJ |
+| Desenvolvimento web com VRaptor    |           1 | PAGA_PF |
+| Desenvolvimento web com VRaptor    |           1 | PAGA_PJ |
+| Scrum e métodos ágeis              |           1 | PAGA_PF |
+| Scrum e métodos ágeis              |           1 | PAGA_PJ |
+| SQL e banco de dados               |           1 | PAGA_PF |
+| SQL e banco de dados               |           1 | PAGA_PJ |
++------------------------------------+-------------+---------+
+9 rows in set (0.00 sec)
+
+```
+
+Em SQL, existe a instrução IN que permite especificarmos mais de um
+valor que precisamos filtrar ao mesmo tempo para uma determinada coluna:
+
+```sql
+MariaDB [escola]> SELECT c.nome, COUNT(m.id), m.tipo
+    -> FROM matricula m
+    -> JOIN curso c ON m.curso_id = c.id
+    -> WHERE m.tipo IN ('PAGA_PJ', 'PAGA_PF', 'PAGA_CHEQUE', 'PAGA_BOLETO')
+    -> GROUP BY c.nome, m.tipo;
++------------------------------------+-------------+-------------+
+| nome                               | COUNT(m.id) | tipo        |
++------------------------------------+-------------+-------------+
+| C# e orientação a objetos          |           1 | PAGA_BOLETO |
+| C# e orientação a objetos          |           1 | PAGA_CHEQUE |
+| C# e orientação a objetos          |           1 | PAGA_PF     |
+| C# e orientação a objetos          |           1 | PAGA_PJ     |
+| Desenvolvimento mobile com Android |           2 | PAGA_PJ     |
+| Desenvolvimento web com VRaptor    |           1 | PAGA_PF     |
+| Desenvolvimento web com VRaptor    |           1 | PAGA_PJ     |
+| Scrum e métodos ágeis              |           1 | PAGA_PF     |
+| Scrum e métodos ágeis              |           1 | PAGA_PJ     |
+| SQL e banco de dados               |           1 | PAGA_BOLETO |
+| SQL e banco de dados               |           1 | PAGA_CHEQUE |
+| SQL e banco de dados               |           1 | PAGA_PF     |
+| SQL e banco de dados               |           1 | PAGA_PJ     |
++------------------------------------+-------------+-------------+
+13 rows in set (0.00 sec)
+```
+
+
+A instituição nomeou 3 alunos como os mais destacados nos últimos cursos realizamos e gostaria de
+saber quais foram todos os cursos que eles fizeram. Os 3 alunos que se destacaram foram: João da Silva,
+Alberto Santos e a Renata Alonso. Vamos verificar quais são os id s desses alunos:
+
+```sql
+MariaDB [escola]> SELECT a.nome , c.nome
+    -> FROM curso c
+    -> JOIN matricula m ON m.curso_id = c.id
+    -> JOIN aluno a ON m.aluno_id = a.id
+    -> WHERE a.id in (1,3,4)
+    -> ORDER BY a.nome;
++----------------+------------------------------------+
+| nome           | nome                               |
++----------------+------------------------------------+
+| Alberto Santos | Scrum e métodos ágeis              |
+| Alberto Santos | C# e orientação a objetos          |
+| João da Silva  | SQL e banco de dados               |
+| João da Silva  | C# e orientação a objetos          |
+| Renata Alonso  | C# e orientação a objetos          |
+| Renata Alonso  | Desenvolvimento mobile com Android |
++----------------+------------------------------------+
+6 rows in set (0.00 sec)
+
+
+```
+
+Na instituição, serão lançados alguns cursos novos de .NET e o pessoal do comercial precisa divulgar
+esses cursos para os ex-alunos, porém apenas para os ex-alunos que já fizeram os cursos de C# e de SQL.
+Inicialmente vamos verificar os id s desses cursos:
+
+```sql
+MariaDB [escola]> SELECT a.nome, c.nome
+    -> FROM aluno a
+    -> JOIN matricula m ON m.aluno_id = a.id
+    -> JOIN curso c ON m.curso_id = c.id
+    -> WHERE c.id IN (1,4)
+    -> ORDER BY c.nome;
++----------------+---------------------------+
+| nome           | nome                      |
++----------------+---------------------------+
+| Renata Alonso  | C# e orientação a objetos |
+| João da Silva  | C# e orientação a objetos |
+| Frederico José | C# e orientação a objetos |
+| Alberto Santos | C# e orientação a objetos |
+| João da Silva  | SQL e banco de dados      |
+| Frederico José | SQL e banco de dados      |
+| Paulo José     | SQL e banco de dados      |
+| Manoel Santos  | SQL e banco de dados      |
++----------------+---------------------------+
+8 rows in set (0.00 sec)
+
+```
+Agora sabemos que apenas os alunos Frederico José e João da Silva, são os ex-alunos aptos para
+realizar os novos cursos de .NET.
+
+#### resumo
+
+Nesse capítulo vimos que quando precisamos saber todos os valores de uma determinada coluna
+podemos utilizar a instrução DISTINCT para retornar todos os valores distintos, ou seja, sem nenhuma
+repetição. Vimos também que quando precisamos realizar vários filtros para uma mesma coluna,
+podemos utilizar a instrução IN passando por parâmetro todos os valores que esperamos que seja
+retornado, ao invés de ficar preenchendo a nossa query com vários OR s.
+
+
+#### lista de exercício
+
+- 
+
 
 
 [Voltar ao Índice](#indice)
