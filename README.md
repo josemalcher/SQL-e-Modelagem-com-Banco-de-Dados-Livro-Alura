@@ -3072,13 +3072,71 @@ Vamos para os exercícios?
 [Voltar ao Índice](#indice)
 
 ---
-## <a name="parte13"></a>
+## <a name="parte13">MUITOS ALUNOS E O LIMIT</a>
 
+Precisamos de um relatório que retorne todos os alunos, algo como selecionar o nome de todos eles, com
+um SELECT simples:
 
-[Voltar ao Índice](#indice)
+```sql
+MariaDB [escola]> SELECT a.nome
+    -> FROM aluno a
+    -> LIMIT 5;
++----------------+
+| nome           |
++----------------+
+| João da Silva  |
+| Frederico José |
+| Alberto Santos |
+| Renata Alonso  |
+| Paulo da Silva |
++----------------+
+5 rows in set (0.00 sec)
+```
 
----
-## <a name="parte14"></a>
+### 13.1 LIMITANDO E BUSCANDO A PARTIR DE UMA QUANTIDADE ESPECÍFICA
+
+Agora vamos pegar os próximos 5 alunos, isto é, senhor MySQL, ignore os 5 primeiros, e depois
+pegue para mim os próximos 5:
+
+```sql
+MariaDB [escola]> SELECT a.nome
+    -> FROM aluno a
+    -> LIMIT 5,5;
++-----------------+
+| nome            |
++-----------------+
+| Carlos Cunha    |
+| Paulo José      |
+| Manoel Santos   |
+| Renata Ferreira |
+| Paula Soares    |
++-----------------+
+5 rows in set (0.00 sec)
+
+```
+
+LIMIT 5 ? LIMIT 5,5 ? Parece um pouco estranho, o que será que isso significa? Quando
+utilizamos o LIMIT funciona da seguinte maneira: LIMIT
+linha_inicial,qtd_de_linhas_para_avançar , ou seja, quando fizemos LIMIT 5 , informamos ao
+MySQL que avançe 5 linhas apenas, pois por padrão ele iniciará pela primeira linha, chamada de linha
+0 . Se fizéssemos LIMIT 0,5 , por exemplo:
+
+```sql
+MariaDB [escola]> SELECT a.nome FROM aluno a
+    -> ORDER BY a.nome
+    -> LIMIT 0,5;
++------------------+
+| nome             |
++------------------+
+| Alberto Santos   |
+| Carlos Cunha     |
+| Claudio Soares   |
+| Cristaldo Santos |
+| Danilo Cunha     |
++------------------+
+5 rows in set (0.00 sec)
+
+```
 
 
 [Voltar ao Índice](#indice)
