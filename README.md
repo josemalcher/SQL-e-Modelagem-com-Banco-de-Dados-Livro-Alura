@@ -2672,7 +2672,413 @@ MariaDB [escola]> SELECT a.nome,
 
 ---
 
-## <a name="parte12"></a>
+## <a name="parte12">ENTENDENDO O LEFT JOIN</a>
+
+Os instrutores da instituição pediram um relatório com os alunos que são mais participativos na sala de
+aula, ou seja, queremos retornar os alunos que responderam mais exercícios. Consequentemente
+encontraremos também os alunos que não estão participando muito, então já aproveitamos e
+conversamos com eles para entender o que está acontecendo.
+
+```sql
+MariaDB [escola]> SELECT a.nome, COUNT(r.id) AS respostas
+    -> FROM aluno a
+    -> JOIN resposta r ON r.aluno_id = a.id
+    -> GROUP BY a.nome;
++----------------+-----------+
+| nome           | respostas |
++----------------+-----------+
+| Alberto Santos |         9 |
+| Frederico José |         4 |
+| João da Silva  |         7 |
+| Renata Alonso  |         7 |
++----------------+-----------+
+4 rows in set (0.00 sec)
+
+```
+
+Alunos sem resposta desapareceram? Vamos procurar todos os alunos que não possuem nenhuma
+resposta. Isto é selecionar os alunos que não existe, resposta deste aluno:
+
+```sql
+MariaDB [escola]> SELECT a.nome
+    -> FROM aluno a
+    -> WHERE NOT EXISTS(SELECT r.id FROM resposta r WHERE r.aluno_id = a.id);
++------------------+
+| nome             |
++------------------+
+| Paulo da Silva   |
+| Carlos Cunha     |
+| Paulo José       |
+| Manoel Santos    |
+| Renata Ferreira  |
+| Paula Soares     |
+| Jose da Silva    |
+| Danilo Cunha     |
+| Zilmira José     |
+| Cristaldo Santos |
+| Osmir Ferreira   |
+| Claudio Soares   |
++------------------+
+12 rows in set (0.00 sec)
+```
+
+Se verificarmos os nomes, realmente, todos os alunos que não tem respostas não estão sendo
+retornados naquela primeira query. Porém nós queremos também que retorne os alunos sem respostas...
+Vamos tentar de uma outra maneira, vamos retornar o nome do aluno e a resposta que ele respondeu:
+
+Agora vamos adicionar a coluna id da tabela aluno e aluno_id da tabela resposta :
+
+```sql
+MariaDB [escola]> SELECT a.nome, r.aluno_id ,r.resposta_dada
+    -> FROM aluno a
+    -> JOIN resposta r ON r.aluno_id = a.id;
++----------------+----------+-----------------------------------------------------------------------------------+
+| nome           | aluno_id | resposta_dada                                                                     |
++----------------+----------+-----------------------------------------------------------------------------------+
+| João da Silva  |        1 | uma selecao                                                                       |
+| João da Silva  |        1 | ixi, nao sei                                                                      |
+| João da Silva  |        1 | alterar dados                                                                     |
+| João da Silva  |        1 | eskecer o where e alterar tudo                                                    |
+| João da Silva  |        1 | apagar coisas                                                                     |
+| João da Silva  |        1 | tb nao pode eskecer o where                                                       |
+| João da Silva  |        1 | inserir dados                                                                     |
+| Frederico José |        2 | buscar dados                                                                      |
+| Frederico José |        2 | select campos from tabela                                                         |
+| Frederico José |        2 | alterar coisas                                                                    |
+| Frederico José |        2 | ixi, nao sei                                                                      |
+| Alberto Santos |        3 | tempo pra fazer algo                                                              |
+| Alberto Santos |        3 | 1 a 4 semanas                                                                     |
+| Alberto Santos |        3 | melhoria do processo                                                              |
+| Alberto Santos |        3 | todo dia                                                                          |
+| Alberto Santos |        3 | reuniao de status                                                                 |
+| Alberto Santos |        3 | todo dia                                                                          |
+| Alberto Santos |        3 | o quadro branco                                                                   |
+| Alberto Santos |        3 | um metodo agil                                                                    |
+| Alberto Santos |        3 | tem varios outros                                                                 |
+| Renata Alonso  |        4 | eh a internet                                                                     |
+| Renata Alonso  |        4 | browser faz requisicao, servidor manda resposta                                   |
+| Renata Alonso  |        4 | eh o servidor que lida com http                                                   |
+| Renata Alonso  |        4 | nao sei                                                                           |
+| Renata Alonso  |        4 | banco de dados!                                                                   |
+| Renata Alonso  |        4 | eh colocar a app na internet                                                      |
+| Renata Alonso  |        4 | depende da tecnologia, mas geralmente eh levar pra um servidor que ta na internet |
++----------------+----------+-----------------------------------------------------------------------------------+
+27 rows in set (0.00 sec)
+
+```
+
+Perceba que separamos as informações dos alunos de um lado e a das respostas do outro lado.
+Analisando esses dados podemos verificar que quando fizemos o JOIN entre a tabela aluno e
+resposta estamos trazendo apenas todos os registros que possuem o id da tabela aluno e o
+aluno_id da tabela resposta .
+
+O que o SQL faz também é que todos os alunos cujo o id não esteja na coluna aluno_id não
+serão retornados! Isto é, ele só trará para nós alguém que o JOIN tenha valor igual nas duas tabelas. Se
+só está presente em uma das tabelas, ele ignora.
+
+Em SQL, existe um JOIN diferente que permite o retorno de alunos que também não possuam o
+id na tabela que está sendo associada. Queremos pegar todo mundo da tabela da esquerda,
+independentemente de existir ou não um valor na tabela da direita. É um tal de join de esquerda, o LEFT
+JOIN , ou seja, ele trará todos os registros da tabela da esquerda mesmo que não exista uma associação
+na tabela da direita:
+
+```sql
+MariaDB [escola]> SELECT a.nome, r.aluno_id ,r.resposta_dada
+    -> FROM aluno a
+    -> LEFT JOIN resposta r ON r.aluno_id = a.id;
++------------------+----------+-----------------------------------------------------------------------------------+
+| nome             | aluno_id | resposta_dada                                                                     |
++------------------+----------+-----------------------------------------------------------------------------------+
+| João da Silva    |        1 | uma selecao                                                                       |
+| João da Silva    |        1 | ixi, nao sei                                                                      |
+| João da Silva    |        1 | alterar dados                                                                     |
+| João da Silva    |        1 | eskecer o where e alterar tudo                                                    |
+| João da Silva    |        1 | apagar coisas                                                                     |
+| João da Silva    |        1 | tb nao pode eskecer o where                                                       |
+| João da Silva    |        1 | inserir dados                                                                     |
+| Frederico José   |        2 | buscar dados                                                                      |
+| Frederico José   |        2 | select campos from tabela                                                         |
+| Frederico José   |        2 | alterar coisas                                                                    |
+| Frederico José   |        2 | ixi, nao sei                                                                      |
+| Alberto Santos   |        3 | tempo pra fazer algo                                                              |
+| Alberto Santos   |        3 | 1 a 4 semanas                                                                     |
+| Alberto Santos   |        3 | melhoria do processo                                                              |
+| Alberto Santos   |        3 | todo dia                                                                          |
+| Alberto Santos   |        3 | reuniao de status                                                                 |
+| Alberto Santos   |        3 | todo dia                                                                          |
+| Alberto Santos   |        3 | o quadro branco                                                                   |
+| Alberto Santos   |        3 | um metodo agil                                                                    |
+| Alberto Santos   |        3 | tem varios outros                                                                 |
+| Renata Alonso    |        4 | eh a internet                                                                     |
+| Renata Alonso    |        4 | browser faz requisicao, servidor manda resposta                                   |
+| Renata Alonso    |        4 | eh o servidor que lida com http                                                   |
+| Renata Alonso    |        4 | nao sei                                                                           |
+| Renata Alonso    |        4 | banco de dados!                                                                   |
+| Renata Alonso    |        4 | eh colocar a app na internet                                                      |
+| Renata Alonso    |        4 | depende da tecnologia, mas geralmente eh levar pra um servidor que ta na internet |
+| Paulo da Silva   |     NULL | NULL                                                                              |
+| Carlos Cunha     |     NULL | NULL                                                                              |
+| Paulo José       |     NULL | NULL                                                                              |
+| Manoel Santos    |     NULL | NULL                                                                              |
+| Renata Ferreira  |     NULL | NULL                                                                              |
+| Paula Soares     |     NULL | NULL                                                                              |
+| Jose da Silva    |     NULL | NULL                                                                              |
+| Danilo Cunha     |     NULL | NULL                                                                              |
+| Zilmira José     |     NULL | NULL                                                                              |
+| Cristaldo Santos |     NULL | NULL                                                                              |
+| Osmir Ferreira   |     NULL | NULL                                                                              |
+| Claudio Soares   |     NULL | NULL                                                                              |
++------------------+----------+-----------------------------------------------------------------------------------+
+39 rows in set (0.00 sec)
+
+```
+
+Conseguimos retornar todos os registros. Então agora vamos tentar contar novamentes as respostas,
+agrupando pelo nome:
+
+```sql
+MariaDB [escola]> SELECT a.nome,
+    ->        COUNT(r.id) AS respostas
+    -> FROM aluno a
+    -> LEFT JOIN resposta r ON r.aluno_id = a.id
+    -> GROUP BY a.nome;
++------------------+-----------+
+| nome             | respostas |
++------------------+-----------+
+| Alberto Santos   |         9 |
+| Carlos Cunha     |         0 |
+| Claudio Soares   |         0 |
+| Cristaldo Santos |         0 |
+| Danilo Cunha     |         0 |
+| Frederico José   |         4 |
+| João da Silva    |         7 |
+| Jose da Silva    |         0 |
+| Manoel Santos    |         0 |
+| Osmir Ferreira   |         0 |
+| Paula Soares     |         0 |
+| Paulo da Silva   |         0 |
+| Paulo José       |         0 |
+| Renata Alonso    |         7 |
+| Renata Ferreira  |         0 |
+| Zilmira José     |         0 |
++------------------+-----------+
+16 rows in set (0.00 sec)
+
+```
+
+### 12.1 RIGHT JOIN
+
+Vamos supor que ao invés de retornar todos os alunos e suas respostas, mesmo que o aluno não
+tenha nenhuma resposta, queremos faer o contrário, ou seja, retornar todos as respostas que foram
+respondidas e as que não foram respondidas. Vamos verificar se existe alguma resposta que não foi
+respondida por um aluno:
+
+```sql
+MariaDB [escola]> SELECT r.id
+    -> FROM resposta r
+    -> WHERE r.aluno_id IS NULL;
+Empty set (0.00 sec)
+
+```
+
+Adicionando uma resposta sem aluno:
+
+```sql
+INSERT INTO resposta (resposta_dada) VALUE ('x vale 10.');
+```
+
+Agora existe uma resposta que não foi associada a um aluno. Da mesma forma que utilizamos um
+JOIN diferente para pegar todos os dados da tabela da esquerda (LEFT) mesmo que não tenha
+associação com a tabela que está sendo juntada, existe também o JOIN que fará o procedimento, porém
+para a tabela da direita (RIGHT), que é o tal do RIGHT JOIN :
+
+```sql
+MariaDB [escola]> SELECT a.nome, r.resposta_dada
+    -> FROM aluno a
+    -> RIGHT JOIN resposta r ON r.aluno_id = a.id;
++----------------+-----------------------------------------------------------------------------------+
+| nome           | resposta_dada                                                                     |
++----------------+-----------------------------------------------------------------------------------+
+| João da Silva  | uma selecao                                                                       |
+| João da Silva  | ixi, nao sei                                                                      |
+| João da Silva  | alterar dados                                                                     |
+| João da Silva  | eskecer o where e alterar tudo                                                    |
+| João da Silva  | apagar coisas                                                                     |
+| João da Silva  | tb nao pode eskecer o where                                                       |
+| João da Silva  | inserir dados                                                                     |
+| Frederico José | buscar dados                                                                      |
+| Frederico José | select campos from tabela                                                         |
+| Frederico José | alterar coisas                                                                    |
+| Frederico José | ixi, nao sei                                                                      |
+| Alberto Santos | tempo pra fazer algo                                                              |
+| Alberto Santos | 1 a 4 semanas                                                                     |
+| Alberto Santos | melhoria do processo                                                              |
+| Alberto Santos | todo dia                                                                          |
+| Alberto Santos | reuniao de status                                                                 |
+| Alberto Santos | todo dia                                                                          |
+| Alberto Santos | o quadro branco                                                                   |
+| Alberto Santos | um metodo agil                                                                    |
+| Alberto Santos | tem varios outros                                                                 |
+| Renata Alonso  | eh a internet                                                                     |
+| Renata Alonso  | browser faz requisicao, servidor manda resposta                                   |
+| Renata Alonso  | eh o servidor que lida com http                                                   |
+| Renata Alonso  | nao sei                                                                           |
+| Renata Alonso  | banco de dados!                                                                   |
+| Renata Alonso  | eh colocar a app na internet                                                      |
+| Renata Alonso  | depende da tecnologia, mas geralmente eh levar pra um servidor que ta na internet |
+| NULL           | x vale 10.                                                                        |
++----------------+-----------------------------------------------------------------------------------+
+28 rows in set (0.00 sec)
+
+```
+
+Quando utilizamos ***apenas o JOIN*** significa que queremos retornar todos os registros que tenham
+uma associação, ou seja, que exista tanto na tabela da esquerda quanto na tabela da direita, esse JOIN
+também é conhecido como INNER JOIN . Vamos verificar o resultado utilizando o ***INNER JOIN*** :
+
+```sql
+MariaDB [escola]> SELECT a.nome, COUNT(r.id) AS respostas
+    -> FROM aluno a
+    ->        INNER JOIN resposta r ON r.aluno_id = a.id
+    -> GROUP BY a.nome;
++----------------+-----------+
+| nome           | respostas |
++----------------+-----------+
+| Alberto Santos |         9 |
+| Frederico José |         4 |
+| João da Silva  |         7 |
+| Renata Alonso  |         7 |
++----------------+-----------+
+4 rows in set (0.00 sec)
+
+```
+
+### 12.2 JOIN OU SUBQUERY?
+
+O resultado é o mesmo! Se o resultado é o mesmo, quando eu devo utilizar o JOIN ou as subqueries?
+Aparentemente a subquery é mais enxuta e mais fácil de ser escrita, porém os SGBDs sempre terão um
+desempenho melhor para JOIN em relação a subqueries, então prefira o uso de JOIN s ao invés de
+subquery.
+
+```sql
+MariaDB [escola]> SELECT a.nome,
+    ->        (SELECT COUNT(r.id) FROM resposta r WHERE r.aluno_id = a.id)  AS qtd_respostas,
+    ->        (SELECT COUNT(m.id) FROM matricula m WHERE m.aluno_id = a.id) AS qtd_matriculas
+    -> FROM aluno a;
++------------------+---------------+----------------+
+| nome             | qtd_respostas | qtd_matriculas |
++------------------+---------------+----------------+
+| João da Silva    |             7 |              2 |
+| Frederico José   |             4 |              3 |
+| Alberto Santos   |             9 |              2 |
+| Renata Alonso    |             7 |              2 |
+| Paulo da Silva   |             0 |              0 |
+| Carlos Cunha     |             0 |              0 |
+| Paulo José       |             0 |              1 |
+| Manoel Santos    |             0 |              2 |
+| Renata Ferreira  |             0 |              1 |
+| Paula Soares     |             0 |              1 |
+| Jose da Silva    |             0 |              0 |
+| Danilo Cunha     |             0 |              0 |
+| Zilmira José     |             0 |              0 |
+| Cristaldo Santos |             0 |              0 |
+| Osmir Ferreira   |             0 |              0 |
+| Claudio Soares   |             0 |              0 |
++------------------+---------------+----------------+
+16 rows in set (0.00 sec)
+
+```
+
+
+Repare que a nossa query associando um aluno 1, com a resposta 1 e matrícula 1, o mesmo aluno 1,
+com resposta 1 e matrícula 11 e assim sucessivamente... Isso significa que essa query está multiplicando o
+aluno(1) x respostas(7) x matrículas(2)... Com certeza essa contagem não funcionará! Precisamos de
+resultados distintos, ou seja, iremos utilizar o DISTINCT para evitar esse problema. Agora podemos
+contar as respostas e as matrículas:
+
+```sql
+MariaDB [escola]> SELECT a.nome, COUNT(DISTINCT r.id) AS qtd_respostas,
+    -> COUNT(DISTINCT m.id) AS qtd_matriculas
+    -> FROM aluno a
+    -> LEFT JOIN resposta r ON r.aluno_id = a.id
+    -> LEFT JOIN matricula m ON m.aluno_id = a.id
+    -> GROUP BY a.nome;
++------------------+---------------+----------------+
+| nome             | qtd_respostas | qtd_matriculas |
++------------------+---------------+----------------+
+| Alberto Santos   |             9 |              2 |
+| Carlos Cunha     |             0 |              0 |
+| Claudio Soares   |             0 |              0 |
+| Cristaldo Santos |             0 |              0 |
+| Danilo Cunha     |             0 |              0 |
+| Frederico José   |             4 |              3 |
+| João da Silva    |             7 |              2 |
+| Jose da Silva    |             0 |              0 |
+| Manoel Santos    |             0 |              2 |
+| Osmir Ferreira   |             0 |              0 |
+| Paula Soares     |             0 |              1 |
+| Paulo da Silva   |             0 |              0 |
+| Paulo José       |             0 |              1 |
+| Renata Alonso    |             7 |              2 |
+| Renata Ferreira  |             0 |              1 |
+| Zilmira José     |             0 |              0 |
++------------------+---------------+----------------+
+16 rows in set (0.00 sec)
+
+```
+
+E se não adicionássemos a instrução DISTINCT ? O que aconteceria? Vamos testar:
+
+```sql
+MariaDB [escola]> SELECT a.nome, COUNT(r.id) AS qtd_respostas, COUNT(m.id) AS qtd_matriculas
+    -> FROM aluno a
+    ->        LEFT JOIN resposta r ON r.aluno_id = a.id
+    ->        LEFT JOIN matricula m ON m.aluno_id = a.id
+    -> GROUP BY a.nome;
++------------------+---------------+----------------+
+| nome             | qtd_respostas | qtd_matriculas |
++------------------+---------------+----------------+
+| Alberto Santos   |            18 |             18 |
+| Carlos Cunha     |             0 |              0 |
+| Claudio Soares   |             0 |              0 |
+| Cristaldo Santos |             0 |              0 |
+| Danilo Cunha     |             0 |              0 |
+| Frederico José   |            12 |             12 |
+| João da Silva    |            14 |             14 |
+| Jose da Silva    |             0 |              0 |
+| Manoel Santos    |             0 |              2 |
+| Osmir Ferreira   |             0 |              0 |
+| Paula Soares     |             0 |              1 |
+| Paulo da Silva   |             0 |              0 |
+| Paulo José       |             0 |              1 |
+| Renata Alonso    |            14 |             14 |
+| Renata Ferreira  |             0 |              1 |
+| Zilmira José     |             0 |              0 |
++------------------+---------------+----------------+
+16 rows in set (0.00 sec)
+```
+
+
+#### resumo
+
+Neste capítulo aprendemos como utilizar os diferentes tipos de JOIN s, como por exemplo o LEFT
+JOIN que retorna os registros da tabela a esquerda e o RIGHT JOIN que retorna os da direita mesmo
+que não tenham associações. Vimos também que o JOIN também é conhecido como INNER JOIN que
+retorna apenas os registros que estão associados. Além disso, vimos que algumas queries podem ser
+resolvidas utilizando subqueries ou LEFT/RIGHT JOIN , porém é importante lembrar que os SGBDs
+sempre terão melhor desempenho com o os JOIN s, por isso é recomendado que utilize os JOIN s.
+Vamos para os exercícios?
+
+[Voltar ao Índice](#indice)
+
+---
+## <a name="parte13"></a>
+
+
+[Voltar ao Índice](#indice)
+
+---
+## <a name="parte14"></a>
 
 
 [Voltar ao Índice](#indice)
