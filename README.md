@@ -2193,7 +2193,7 @@ teste para verificar se está funcionando, pois isso ajuda a verificar aonde est
 
 Lista de Exercícios
 
-- 
+- https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/9-ListaExercicio
 
 
 
