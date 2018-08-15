@@ -1997,7 +1997,7 @@ MariaDB [escola]> SELECT c.nome, COUNT(a.id) AS quantidade
 
 Exercício 08
 
-- 
+- https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/8-ListaExercicios 
 
 
 
