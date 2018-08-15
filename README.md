@@ -2444,7 +2444,7 @@ retornado, ao invés de ficar preenchendo a nossa query com vários OR s.
 
 #### lista de exercício
 
-- 
+- https://github.com/josemalcher/SQL-e-Modelagem-com-Banco-de-Dados-Livro-Alura/tree/master/10-ListaExercicio
 
 
 
